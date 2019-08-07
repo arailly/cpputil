@@ -24,3 +24,12 @@ TEST(Functional, filter_test) {
     const std::vector<int> expect{4, 5};
     EXPECT_EQ(actual, expect);
 }
+
+TEST(Utilities, l2_norm_test) {
+    const std::vector<double> v1{1, 1};
+    const std::vector<double> v2{5, 4};
+    const double actual = arailib::l2_norm(v1, v2);
+
+    const double expect = 5;
+    EXPECT_EQ(actual, expect);
+}
