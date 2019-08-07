@@ -7,8 +7,6 @@
 #include "gtest/gtest.h"
 #include "arailib.hpp"
 
-#include <unistd.h>
-
 TEST(Functional, fmap_test) {
     std::vector<int> v{1, 2, 3};
     const auto double_func = [](int x) { return x * 3; };
@@ -51,8 +49,25 @@ TEST(Object, method_test) {
 TEST(Series, read_csv_test) {
     const std::string data_path = "../../../test/data/series.csv";
     const arailib::Series series = arailib::read_csv(data_path);
-    const arailib::Object actual = series[1];
+    ASSERT_EQ(series.size(), 3);
 
+    const arailib::Object actual = series[1];
+    arailib::Object expect(1, {2, 3, 4});
+    ASSERT_EQ(actual, expect);
+}
+
+TEST(Series, write_csv_test) {
+    const std::string data_path = "../../../test/data/write_series.csv";
+    arailib::Series write_series;
+    write_series.push_back(arailib::Object(0, {1, 2, 3}));
+    write_series.push_back(arailib::Object(1, {2, 3, 4}));
+    write_series.push_back(arailib::Object(2, {3, 4, 5}));
+    arailib::write_csv(write_series, data_path);
+
+    const arailib::Series read_series = arailib::read_csv(data_path);
+    ASSERT_EQ(read_series.size(), 3);
+
+    const arailib::Object actual = read_series[1];
     arailib::Object expect(1, {2, 3, 4});
     ASSERT_EQ(actual, expect);
 }

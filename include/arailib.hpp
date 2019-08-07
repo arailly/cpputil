@@ -104,6 +104,19 @@ Series read_csv(const std::string& path, const size_t& nrows=-1,
     return series;
 }
 
+template <typename T>
+void write_csv(const std::vector<T>& v, const std::string& path) {
+    std::ofstream ofs(path);
+    for (const auto& o : v) {
+        std::string line;
+        for (const auto& e : o) {
+            line += std::to_string(e) + ',';
+        }
+        line.pop_back();
+        line += '\n';
+        ofs << line;
+    }
+}
 }
 
 #endif //ARAILIB_ARAILIB_HPP
