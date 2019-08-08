@@ -37,16 +37,16 @@ double l2_norm(const Iterable& v1, const Iterable& v2) {
 }
 
 struct Object {
-    size_t index;
+    size_t id;
     std::vector<double> x;
 
     Object(size_t i, std::vector<double> v) {
-        index = i;
+        id = i;
         std::copy(v.begin(), v.end(), std::back_inserter(x));
     }
 
     Object(std::vector<double> v) {
-        index = 0;
+        id = 0;
         std::copy(v.begin(), v.end(), std::back_inserter(x));
     }
 
@@ -54,12 +54,12 @@ struct Object {
     const double& operator[] (size_t i) const { return x[i]; }
 
     bool operator==(const Object& o) const {
-        if (index == o.index) return true;
+        if (id == o.id) return true;
         return false;
     }
 
     bool operator!=(const Object& o) const {
-        if (index != o.index) return true;
+        if (id != o.id) return true;
         return false;
     }
 
@@ -68,7 +68,7 @@ struct Object {
     auto end() const { return x.end(); }
 
     void show() const {
-        std::cout << index << ": ";
+        std::cout << id << ": ";
         for (const auto& xi : x) {
             std::cout << xi << ' ';
         } std::cout << std::endl;

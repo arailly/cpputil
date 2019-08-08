@@ -36,13 +36,13 @@ TEST(Utilities, l2_norm_test) {
 
 TEST(Object, method_test) {
     const arailib::Object o1(0, {1, 2, 3});
-    ASSERT_EQ(o1.index, 0);
+    ASSERT_EQ(o1.id, 0);
     ASSERT_EQ(o1[1], 2);
 
     arailib::Object o2(0, {1, 2, 3});
     ASSERT_TRUE(o1 == o2);
 
-    o2.index++;
+    o2.id++;
     ASSERT_FALSE(o1 == o2);
 }
 
