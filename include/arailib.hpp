@@ -27,8 +27,8 @@ Iterable filter(Predicate pred, const Iterable &v) {
 }
 
 template <class Iterable>
-double l2_norm(const Iterable& v1, const Iterable& v2) {
-    double result = 0;
+float l2_norm(const Iterable& v1, const Iterable& v2) {
+    float result = 0;
     for (size_t i = 0; i < v1.size(); i++) {
         result += std::pow(v1[i] - v2[i], 2);
     }
