@@ -36,16 +36,16 @@ float l2_norm(const Iterable& v1, const Iterable& v2) {
     return result;
 }
 
-struct Object {
+struct Point {
     size_t id;
     std::vector<double> x;
 
-    Object(size_t i, std::vector<double> v) {
+    Point(size_t i, std::vector<double> v) {
         id = i;
         std::copy(v.begin(), v.end(), std::back_inserter(x));
     }
 
-    Object(std::vector<double> v) {
+    Point(std::vector<double> v) {
         id = 0;
         std::copy(v.begin(), v.end(), std::back_inserter(x));
     }
@@ -53,12 +53,12 @@ struct Object {
     double& operator[] (size_t i) { return x[i]; }
     const double& operator[] (size_t i) const { return x[i]; }
 
-    bool operator==(const Object& o) const {
+    bool operator==(const Point& o) const {
         if (id == o.id) return true;
         return false;
     }
 
-    bool operator!=(const Object& o) const {
+    bool operator!=(const Point& o) const {
         if (id != o.id) return true;
         return false;
     }
@@ -75,7 +75,7 @@ struct Object {
     }
 };
 
-typedef std::vector<Object> Series;
+typedef std::vector<Point> Series;
 
 auto split(std::string& input, char delimiter=',') {
     std::istringstream stream(input);
@@ -99,7 +99,7 @@ Series read_csv(const std::string& path, const size_t& nrows=-1,
         // if first line is the header then skip
         if (skip_header && (i == 0)) continue;
         std::vector<double> v = split(line);
-        series.push_back(Object(i, v));
+        series.push_back(Point(i, v));
     }
     return series;
 }
