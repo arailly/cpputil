@@ -6,6 +6,7 @@
 #define ARAILIB_NNDESCENT_HPP
 
 #include <random>
+#include <iostream>
 #include <vector>
 #include <map>
 #include <queue>
@@ -14,15 +15,13 @@
 namespace arailib::nndescent {
 
     struct Neighbor {
-        size_t id;
+        Point query;
+        Point point;
         float distance;
 
-        Neighbor(size_t i, float d) : id(i), distance(d) {}
+        Neighbor(Point& q, Point& p, float d) : query(q), point(p), distance(d) {}
 
-        Neighbor(const Point& query, const Point& point) {
-            id = point.id;
-            distance = l2_norm(query, point);
-        }
+        Neighbor(Point& q, Point& p) : query(q), point(p), distance(l2_norm(query, point)) {}
 
     };
 
@@ -33,28 +32,29 @@ namespace arailib::nndescent {
 
     typedef std::vector<Neighbor> Neighbors;
 
-    class KNearestNeighbors {
+    class KNearestNeighborsHeap {
     public:
-        size_t k;
+        size_t id;
+        size_t k = 0;
         Point query;
         std::priority_queue<Neighbor> neighbor_heap;
 
-        KNearestNeighbors(size_t k, const Point& o) : k(k), query(o) {}
+        KNearestNeighborsHeap(size_t k, Point q) : k(k), query(q) {}
 
-        void update(const Point& point) {
+        bool initialized() { return k != 0; }
+
+        void update(Point& point) {
             Neighbor n(query, point);
             neighbor_heap.push(n);
         }
 
-        Neighbor furthest() const {
-            return neighbor_heap.top();
-        }
+        Neighbor furthest() const { return neighbor_heap.top(); }
 
-        void pop() {
-            neighbor_heap.pop();
-        }
+        void pop() { neighbor_heap.pop(); }
 
-        std::vector<Neighbor> vectorize() const {
+        bool empty() const { return neighbor_heap.empty(); }
+
+        Neighbors vectorize() const {
             auto neighbor_heap_copy = neighbor_heap;
             std::vector<Neighbor> result;
             while (!neighbor_heap_copy.empty()) {
@@ -66,14 +66,14 @@ namespace arailib::nndescent {
         }
     };
 
-    typedef std::vector<KNearestNeighbors> KNearestNeighborsList;
+    typedef std::vector<KNearestNeighborsHeap> KNearestNeighborsHeapList;
 
-    KNearestNeighbors sample(const Series& series, const Point& query, size_t n_sample, int random_state=42) {
+    KNearestNeighborsHeap sample(Series& series, Point& query, size_t n_sample, u_int random_state=42) {
         std::mt19937 engine(random_state);
-        std::uniform_int_distribution<> dist(0, series.size() - 1);
+        std::uniform_int_distribution<> dist(0, static_cast<int>(series.size() - 1));
 
         std::map<size_t, bool> random_id_map;
-        KNearestNeighbors knn(n_sample, query);
+        KNearestNeighborsHeap knn(n_sample, query);
         for (size_t i = 0; i < n_sample; i++) {
             auto random_id = static_cast<size_t>(dist(engine));
 
@@ -86,23 +86,30 @@ namespace arailib::nndescent {
         return knn;
     }
 
-    KNearestNeighborsList reverse(KNearestNeighborsList knn_list) {
-        KNearestNeighborsList reverse_knn_list;
-        for (const auto& knn : knn_list) {
+    typedef std::vector<Series> ReverseKNearestNeighborsList;
 
+    ReverseKNearestNeighborsList reverse(KNearestNeighborsHeapList& knn_list) {
+        auto k = knn_list[0].k;
+        std::vector<Series> reverse_knn_list(knn_list.size());
+        for (auto knn : knn_list) {
+            while (!knn.empty()) {
+                auto n = knn.furthest();
+                reverse_knn_list[n.point.id].push_back(knn.query);
+                knn.pop();
+            }
         }
         return reverse_knn_list;
     }
 
-    KNearestNeighborsList create_knn_graph(const Series& series, size_t k, int random_state=42) {
-         KNearestNeighborsList knn_list;
-         for (const auto& query : series) {
-             KNearestNeighbors knn = sample(series, query, k);
+    KNearestNeighborsHeapList create_knn_graph(Series& series, size_t k, int random_state=42) {
+         KNearestNeighborsHeapList knn_list;
+         for (auto& query : series) {
+             KNearestNeighborsHeap knn = sample(series, query, k);
              knn_list.push_back(knn);
          }
 
          while (true) {
-             // auto reverse_knn_list = reverse(knn_list);
+              auto reverse_knn_list = reverse(knn_list);
              // auto local_join_list = local_join(knn_list, reverse_knn_list);
              // bool updated = false;
          }

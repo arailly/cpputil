@@ -78,13 +78,12 @@ TEST(Series, write_csv_test) {
 }
 
 TEST(nn_descent, neighbor) {
-    const std::string data_path = "../../../test/data/series.csv";
-    const arailib::Series series = arailib::read_csv(data_path);
+    std::string data_path = "../../../test/data/series.csv";
+    arailib::Series series = arailib::read_csv(data_path);
 
     nndescent::Neighbor actual(series[0], series[1]);
-    nndescent::Neighbor expect(1, l2_norm(series[0], series[1]));
-    ASSERT_EQ(actual.id, expect.id);
-    ASSERT_EQ(actual.distance, expect.distance);
+    ASSERT_EQ(actual.point.id, 1);
+    ASSERT_EQ(actual.distance, l2_norm(series[0], series[1]));
 }
 
 TEST(nn_descent, KNearestNeighbors) {
@@ -93,30 +92,73 @@ TEST(nn_descent, KNearestNeighbors) {
 
     auto query = series[0];
     auto point_1 = series[1], point_2 = series[2];
-    nndescent::KNearestNeighbors knn(5, query);
+    nndescent::KNearestNeighborsHeap knn(5, query);
     knn.update(point_2);
     knn.update(point_1);
 
-    ASSERT_EQ(point_2.id, knn.furthest().id);
+    ASSERT_EQ(point_2.id, knn.furthest().point.id);
     knn.pop();
-    ASSERT_EQ(point_1.id, knn.furthest().id);
+    ASSERT_EQ(point_1.id, knn.furthest().point.id);
 }
 
 TEST(nn_descent, sample) {
     Series series = {
-            Point(0, {0}),
-            Point(1, {3}),
-            Point(2, {5}),
-            Point(3, {2}),
-            Point(4, {4}),
-            Point(5, {8}),
-            Point(6, {7})
+        Point(0, {0}),
+        Point(1, {3}),
+        Point(2, {5}),
+        Point(3, {2}),
+        Point(4, {4}),
+        Point(5, {8}),
+        Point(6, {7})
     };
 
     auto sampled_knn = nndescent::sample(series, series[0], 4).vectorize();
 
-    ASSERT_EQ(sampled_knn[0].id, 3);
-    ASSERT_EQ(sampled_knn[1].id, 4);
-    ASSERT_EQ(sampled_knn[2].id, 2);
-    ASSERT_EQ(sampled_knn[3].id, 6);
+    ASSERT_EQ(sampled_knn[0].point.id, 3);
+    ASSERT_EQ(sampled_knn[1].point.id, 4);
+    ASSERT_EQ(sampled_knn[2].point.id, 2);
+    ASSERT_EQ(sampled_knn[3].point.id, 6);
+}
+
+TEST(nn_descent, reverse) {
+    Series series = {
+        Point(0, {0}),
+        Point(1, {3}),
+        Point(2, {5}),
+        Point(3, {2}),
+    };
+
+    size_t k = 2;
+    nndescent::KNearestNeighborsHeapList knn_list = {
+        nndescent::KNearestNeighborsHeap(k, series[0]),
+        nndescent::KNearestNeighborsHeap(k, series[1]),
+        nndescent::KNearestNeighborsHeap(k, series[2]),
+        nndescent::KNearestNeighborsHeap(k, series[3]),
+    };
+
+    knn_list[0].update(series[1]);
+    knn_list[0].update(series[3]);
+
+    knn_list[1].update(series[2]);
+    knn_list[1].update(series[3]);
+
+    knn_list[2].update(series[1]);
+    knn_list[2].update(series[3]);
+
+    knn_list[3].update(series[0]);
+    knn_list[3].update(series[1]);
+
+    auto reverse_knn_list = nndescent::reverse(knn_list);
+
+    ASSERT_EQ(reverse_knn_list[0][0].id, 3);
+
+    ASSERT_EQ(reverse_knn_list[1][0].id, 0);
+    ASSERT_EQ(reverse_knn_list[1][1].id, 2);
+    ASSERT_EQ(reverse_knn_list[1][2].id, 3);
+
+    ASSERT_EQ(reverse_knn_list[2][0].id, 1);
+
+    ASSERT_EQ(reverse_knn_list[3][0].id, 0);
+    ASSERT_EQ(reverse_knn_list[3][1].id, 1);
+    ASSERT_EQ(reverse_knn_list[3][2].id, 2);
 }
