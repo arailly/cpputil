@@ -160,7 +160,7 @@ namespace arailib::nndescent {
         return local_join_list;
     }
 
-    KNNHeapList create_knn_graph_naive(Series& series, size_t k, int random_state=42) {
+    KNNHeapList create_knn_graph(Series& series, size_t k, int random_state= 42) {
          KNNHeapList knn_list;
          for (auto& query : series) {
              KNNHeap knn(k, query);
@@ -187,13 +187,23 @@ namespace arailib::nndescent {
          }
     }
 
-    KNNHeapList create_knn_graph(const Series& series, size_t k,
-            float rho, float delta, int random_state=42) {
-        KNNHeapList knn_list;
-        for (auto& query : series) {
-            KNNHeap knn(k, query);
+    KNNHeapList create_knn_graph_full(const Series& series, size_t k,
+                                      float rho, float delta, int random_state= 42) {
+        KNNHeapList knn_list, old_knn_list, new_knn_list;
+        std::map<size_t, bool> flag;
+        int n_updated = 0;
+
+        for (const auto& query : series) {
+            KNNHeap knn(k, query), old_knn(k, query), new_knn(k, query);
+            old_knn_list.push_back(old_knn); new_knn_list.push_back(new_knn);
             knn.update(sample(series, query, k));
             knn_list.push_back(knn);
+        }
+
+        while (true) {
+            for (const auto& point : series) {
+            }
+            if (n_updated < delta * series.size() * k) return knn_list;
         }
     }
 }

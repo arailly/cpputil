@@ -248,7 +248,7 @@ TEST(nn_descent, create_knn_graph) {
     };
 
     size_t k = 2;
-    auto&& knn_list = nndescent::create_knn_graph_naive(series, k);
+    auto&& knn_list = nndescent::create_knn_graph(series, k);
     nndescent::SeriesList knn_vector_list;
     for (const auto& knn : knn_list) {
         Series&& knn_vector = knn.get_knn_series();
