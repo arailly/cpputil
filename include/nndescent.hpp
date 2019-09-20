@@ -173,12 +173,8 @@ namespace arailib::nndescent {
              auto&& local_join_list = local_join(knn_list, reverse_knn_list);
              int n_updated = 0;
              for (const auto& point : series) {
-                 std::map<size_t, bool> added;
-                 added[point.id] = true; // self
                  for (auto& u1: local_join_list[point.id]) {
                      for (auto& u2: local_join_list[u1.id]) {
-                         if (added[u2.id]) continue;
-                         added[u2.id] = true;
                          n_updated += knn_list[point.id].update(u2);
                      }
                  }
