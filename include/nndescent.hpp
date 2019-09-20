@@ -19,10 +19,9 @@ namespace arailib::nndescent {
         Point point;
         float distance;
 
-        Neighbor(Point& q, Point& p, float d) : query(q), point(p), distance(d) {}
+        Neighbor(const Point& q, const Point& p, float d) : query(q), point(p), distance(d) {}
 
-        Neighbor(Point& q, Point& p) : query(q), point(p), distance(l2_norm(query, point)) {}
-
+        Neighbor(const Point& q, const Point& p) : query(q), point(p), distance(l2_norm(query, point)) {}
     };
 
     bool operator<(const Neighbor& n1, const Neighbor& n2) { return n1.distance < n2.distance; }
@@ -37,17 +36,18 @@ namespace arailib::nndescent {
     class KNNHeap {
     public:
         size_t k = 0;
-        Point query;
+        const Point query;
         std::priority_queue<Neighbor> neighbor_heap;
         std::map<size_t, bool> added;
+        bool flag = true;
 
-        KNNHeap(size_t k, Point q) : k(k), query(q) {
+        KNNHeap(size_t k, const Point q) : k(k), query(q) {
             added[q.id] = true; // self
         }
 
         bool initialized() { return k != 0; }
 
-        bool update(Point& point) {
+        bool update(const Point& point) {
             Neighbor n(query, point);
 
             if (neighbor_heap.size() == 0) {
@@ -67,6 +67,14 @@ namespace arailib::nndescent {
             return (previous_furthest != furthest());
         }
 
+        bool update(const Series& series) {
+            bool updated = false;
+            for (const auto& point : series) {
+                updated = update(point) || updated;
+            }
+            return updated;
+        }
+
         Neighbor furthest() const { return neighbor_heap.top(); }
 
         void pop() { neighbor_heap.pop(); }
@@ -75,7 +83,7 @@ namespace arailib::nndescent {
 
         size_t size() const { return neighbor_heap.size(); }
 
-        Series get_knn_series(bool ascending = false) const {
+        Series get_knn_series(bool ascending=false) const {
             Series series;
             auto neighbor_heap_copy = neighbor_heap;
             while (!neighbor_heap_copy.empty()) {
@@ -90,29 +98,29 @@ namespace arailib::nndescent {
 
     typedef std::vector<KNNHeap> KNNHeapList;
 
-    KNNHeap sample(Series& series, Point& query, size_t n_sample, u_int random_state=42) {
+    Series sample(const Series& series, const Point& query, size_t n_sample, u_int random_state=42) {
         std::mt19937 engine(random_state);
         std::uniform_int_distribution<> dist(0, static_cast<int>(series.size() - 1));
 
         std::map<size_t, bool> random_id_map;
-        KNNHeap knn(n_sample, query);
+        Series result;
         for (size_t i = 0; i < n_sample; i++) {
             auto random_id = static_cast<size_t>(dist(engine));
 
             if (random_id_map[random_id] || query.id == random_id) i--;
             else {
                 random_id_map[random_id] = true;
-                knn.update(series[random_id]);
+                result.push_back(series[random_id]);
             }
         }
-        return knn;
+        return result;
     }
 
     typedef std::vector<Series> SeriesList;
 
-    SeriesList reverse(KNNHeapList& knn_list) {
+    SeriesList reverse(const KNNHeapList& knn_list) {
         auto k = knn_list[0].k;
-        std::vector<Series> reverse_knn_list(knn_list.size());
+        SeriesList reverse_knn_list(knn_list.size());
         for (auto knn : knn_list) {
             while (!knn.empty()) {
                 auto n = knn.furthest();
@@ -152,16 +160,17 @@ namespace arailib::nndescent {
         return local_join_list;
     }
 
-    KNNHeapList create_knn_graph_naive(Series& series, size_t k, int random_state= 42) {
+    KNNHeapList create_knn_graph_naive(Series& series, size_t k, int random_state=42) {
          KNNHeapList knn_list;
          for (auto& query : series) {
-             KNNHeap knn = sample(series, query, k);
+             KNNHeap knn(k, query);
+             knn.update(sample(series, query, k));
              knn_list.push_back(knn);
          }
 
          while (true) {
-             auto reverse_knn_list = reverse(knn_list);
-             auto local_join_list = local_join(knn_list, reverse_knn_list);
+             auto&& reverse_knn_list = reverse(knn_list);
+             auto&& local_join_list = local_join(knn_list, reverse_knn_list);
              int n_updated = 0;
              for (const auto& point : series) {
                  std::map<size_t, bool> added;
@@ -176,6 +185,16 @@ namespace arailib::nndescent {
              }
              if (n_updated == 0) return knn_list;
          }
+    }
+
+    KNNHeapList create_knn_graph(const Series& series, size_t k,
+            float rho, float delta, int random_state=42) {
+        KNNHeapList knn_list;
+        for (auto& query : series) {
+            KNNHeap knn(k, query);
+            knn.update(sample(series, query, k));
+            knn_list.push_back(knn);
+        }
     }
 }
 

@@ -138,12 +138,16 @@ TEST(nn_descent, sample) {
         Point(6, {7})
     };
 
-    auto sampled_knn = nndescent::sample(series, series[0], 4).get_knn_series(true);
+    uint k = 4;
+    auto sampled = nndescent::sample(series, series[0], k);
+    nndescent::KNNHeap knn(k, series[0]);
+    knn.update(sampled);
+    auto knn_series = knn.get_knn_series(true);
 
-    ASSERT_EQ(sampled_knn[0].id, 3);
-    ASSERT_EQ(sampled_knn[1].id, 4);
-    ASSERT_EQ(sampled_knn[2].id, 2);
-    ASSERT_EQ(sampled_knn[3].id, 6);
+    ASSERT_EQ(knn_series[0].id, 3);
+    ASSERT_EQ(knn_series[1].id, 4);
+    ASSERT_EQ(knn_series[2].id, 2);
+    ASSERT_EQ(knn_series[3].id, 6);
 }
 
 TEST(nn_descent, reverse) {
