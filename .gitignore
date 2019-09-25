@@ -2,5 +2,6 @@
 .idea/**/tasks.xml
 
 cmake-build-debug
+cmake-build-default
 googletest/
 test/data/write_series.csv

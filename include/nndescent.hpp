@@ -10,6 +10,7 @@
 #include <vector>
 #include <map>
 #include <queue>
+#include <omp.h>
 #include "arailib.hpp"
 
 namespace arailib::nndescent {
@@ -104,6 +105,7 @@ namespace arailib::nndescent {
 
         std::map<size_t, bool> random_id_map;
         Series result;
+
         for (size_t i = 0; i < n_sample; i++) {
             auto random_id = static_cast<size_t>(dist(engine));
 
@@ -160,27 +162,38 @@ namespace arailib::nndescent {
         return local_join_list;
     }
 
-    KNNHeapList create_knn_graph(Series& series, size_t k, int random_state= 42) {
-         KNNHeapList knn_list;
-         for (auto& query : series) {
-             KNNHeap knn(k, query);
-             knn.update(sample(series, query, k));
-             knn_list.push_back(knn);
-         }
+    KNNHeapList create_knn_graph(Series& series, size_t k, int n_threads = -1, int random_state = 42) {
+        KNNHeapList knn_list;
 
-         while (true) {
-             auto&& reverse_knn_list = reverse(knn_list);
-             auto&& local_join_list = local_join(knn_list, reverse_knn_list);
-             int n_updated = 0;
-             for (const auto& point : series) {
-                 for (auto& u1: local_join_list[point.id]) {
-                     for (auto& u2: local_join_list[u1.id]) {
-                         n_updated += knn_list[point.id].update(u2);
-                     }
-                 }
-             }
-             if (n_updated == 0) return knn_list;
-         }
+        // omp config
+        if (n_threads == -1) n_threads = omp_get_max_threads();
+
+//#pragma omp parallel for shared(series, knn_list) num_threads(n_threads)
+        for (size_t i = 0; i < series.size(); i++) {
+            const auto& query = series[i];
+            KNNHeap knn(k, query);
+            const auto&& sampled_series = sample(series, query, k);
+            knn.update(sampled_series);
+            knn_list.push_back(knn);
+        }
+
+        while (true) {
+            auto&& reverse_knn_list = reverse(knn_list);
+            auto&& local_join_list = local_join(knn_list, reverse_knn_list);
+            int n_updated = 0;
+
+#pragma omp parallel for shared(series, knn_list) num_threads(n_threads)
+            for (size_t i = 0; i < series.size(); i++) {
+                const auto& query = series[i];
+                for (auto& u1: local_join_list[query.id]) {
+                    for (auto& u2: local_join_list[u1.id]) {
+#pragma omp atomic
+                        n_updated += knn_list[query.id].update(u2);
+                    }
+                }
+            }
+            if (n_updated == 0) return knn_list;
+        }
     }
 
     KNNHeapList create_knn_graph_full(const Series& series, size_t k,
