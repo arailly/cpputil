@@ -16,6 +16,7 @@
 namespace arailib::nndescent {
 
     struct Neighbor {
+
         Point query;
         Point point;
         float distance;

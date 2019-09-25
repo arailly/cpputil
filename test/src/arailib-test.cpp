@@ -269,8 +269,8 @@ TEST(nn_descent, create_knn_graph) {
 }
 
 TEST(nn_descent, create_knn_graph_on_sift) {
-    std::string siftsmall_path = "/Users/yusuke-arai/workspace/dataset/siftsmall/siftsmall_learn.csv";
-    auto series = read_csv(siftsmall_path, 100);
+    std::string sift_path = "/Users/yusuke-arai/workspace/dataset/sift/sift_base.csv";
+    auto series = read_csv(sift_path, 100);
     size_t k = 10;
 
     // get accurate knn graph
@@ -285,5 +285,33 @@ TEST(nn_descent, create_knn_graph_on_sift) {
 
     for (size_t i = 0; i < k; i++) {
         ASSERT_EQ(knn_vector[i], expect_knn_vector[i]);
+    }
+}
+
+TEST(nn_descent, output) {
+    std::string dataset_dir = "/Users/yusuke-arai/workspace/dataset/";
+    std::string sift_path = dataset_dir + "sift/sift_base.csv";
+    auto series = read_csv(sift_path, 100);
+    size_t k = 10;
+
+    auto&& knn_list = nndescent::create_knn_graph(series, k);
+    nndescent::SeriesList knn_vector_list;
+    for (const auto& knn : knn_list) {
+        Series&& knn_vector = knn.get_knn_series(true);
+        knn_vector_list.push_back(knn_vector);
+    }
+
+//    std::string output_dir = "./output/";
+    std::string output_dir = "/Users/yusuke-arai/CLionProjects/arailib/output/";
+    auto output_path = output_dir + "sift_k_" + std::to_string(k) + ".csv";
+    std::ofstream ofs(output_path);
+
+    for (size_t i = 0; i < knn_vector_list.size(); i++) {
+        const auto& knn_vector = knn_vector_list[i];
+        std::string line;
+        for (const auto& e : knn_vector) {
+            line += std::to_string(i) + ',' + std::to_string(e.id) + "\n";
+        }
+        ofs << line;
     }
 }
