@@ -267,3 +267,23 @@ TEST(nn_descent, create_knn_graph) {
     ASSERT_EQ(knn_vector_list[3][0].id, 0);
     ASSERT_EQ(knn_vector_list[3][1].id, 1);
 }
+
+TEST(nn_descent, create_knn_graph_on_sift) {
+    std::string siftsmall_path = "/Users/yusuke-arai/workspace/dataset/siftsmall/siftsmall_learn.csv";
+    auto series = read_csv(siftsmall_path, 100);
+    size_t k = 10;
+
+    // get accurate knn graph
+    auto query = series[0];
+    auto expect_knn_heap = nndescent::KNNHeap(k, query);
+    expect_knn_heap.update(series);
+    auto expect_knn_vector = expect_knn_heap.get_knn_series();
+
+    // execute nn descent
+    auto&& knn_list = nndescent::create_knn_graph(series, k);
+    auto&& knn_vector = knn_list[0].get_knn_series();
+
+    for (size_t i = 0; i < k; i++) {
+        ASSERT_EQ(knn_vector[i], expect_knn_vector[i]);
+    }
+}

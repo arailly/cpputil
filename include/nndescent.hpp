@@ -10,7 +10,7 @@
 #include <vector>
 #include <map>
 #include <queue>
-#include <omp.h>
+//#include <omp.h>
 #include "arailib.hpp"
 
 namespace arailib::nndescent {
@@ -49,16 +49,15 @@ namespace arailib::nndescent {
         bool initialized() { return k != 0; }
 
         bool update(const Point& point) {
+            if (added[point.id]) return false;
+            added[point.id] = true;
+
             Neighbor n(query, point);
 
             if (neighbor_heap.size() == 0) {
-                added[point.id] = true;
                 neighbor_heap.push(n);
                 return true;
             }
-
-            if (added[point.id]) return false;
-            added[point.id] = true;
 
             auto previous_furthest = furthest();
 
@@ -166,7 +165,7 @@ namespace arailib::nndescent {
         KNNHeapList knn_list;
 
         // omp config
-        if (n_threads == -1) n_threads = omp_get_max_threads();
+//        if (n_threads == -1) n_threads = omp_get_max_threads();
 
 //#pragma omp parallel for shared(series, knn_list) num_threads(n_threads)
         for (size_t i = 0; i < series.size(); i++) {
@@ -182,12 +181,12 @@ namespace arailib::nndescent {
             auto&& local_join_list = local_join(knn_list, reverse_knn_list);
             int n_updated = 0;
 
-#pragma omp parallel for shared(series, knn_list) num_threads(n_threads)
+//#pragma omp parallel for shared(series, knn_list) num_threads(n_threads)
             for (size_t i = 0; i < series.size(); i++) {
                 const auto& query = series[i];
                 for (auto& u1: local_join_list[query.id]) {
                     for (auto& u2: local_join_list[u1.id]) {
-#pragma omp atomic
+//#pragma omp atomic
                         n_updated += knn_list[query.id].update(u2);
                     }
                 }
