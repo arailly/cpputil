@@ -92,6 +92,7 @@ auto split(std::string& input, char delimiter=',') {
 Series read_csv(const std::string& path, const size_t& nrows=-1,
                  const bool& skip_header=false) {
     std::ifstream ifs(path);
+    if (!ifs) throw "Can't open file!";
     std::string line;
 
     Series series;
