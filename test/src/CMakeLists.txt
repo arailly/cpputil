@@ -5,5 +5,8 @@ add_executable(test arailib-test.cpp)
 target_link_libraries(test gtest gtest_main)
 target_include_directories(test PRIVATE ${PROJECT_SOURCE_DIR}/include)
 
+set(JSON_INCLUDE_PATH ${PROJECT_SOURCE_DIR}/../json/single_include)
+include_directories(${JSON_INCLUDE_PATH})
+
 # omp option
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Xpreprocessor -fopenmp")

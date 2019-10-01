@@ -9,6 +9,10 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include "nlohmann/json.hpp"
+
+using namespace std;
+using namespace nlohmann;
 
 namespace arailib {
 
@@ -118,6 +122,15 @@ void write_csv(const std::vector<T>& v, const std::string& path) {
         ofs << line;
     }
 }
+
+json read_config(const string config_path = "./config.json") {
+    json config;
+    ifstream ifs(config_path);
+    if (ifs.fail()) throw "Error: config.json not found.";
+    ifs >> config;
+    return config;
+}
+
 }
 
 #endif //ARAILIB_ARAILIB_HPP
