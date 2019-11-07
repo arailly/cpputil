@@ -30,9 +30,9 @@ TEST(Functional, filter_test) {
 }
 
 TEST(Utilities, l2_norm_test) {
-    const std::vector<double> v1{1, 1};
-    const std::vector<double> v2{5, 4};
-    const double actual = arailib::l2_norm(v1, v2);
+    const auto p1 = Point({0, {1, 1}});
+    const auto p2 = Point({1, {5, 4}});
+    const double actual = arailib::euclidean_distance(p1, p2);
 
     const double expect = 5;
     ASSERT_EQ(actual, expect);
@@ -74,4 +74,20 @@ TEST(Series, write_csv_test) {
     const arailib::Point actual = read_series[1];
     arailib::Point expect(1, {2, 3, 4});
     ASSERT_EQ(actual, expect);
+}
+
+TEST(Distance, cosine_similarity) {
+    const auto p1 = Point(0, {2, 0});
+    const auto p2 = Point(1, {2, 2 * static_cast<float>(sqrt(3))});
+    const auto actual = cosine_similarity(p1, p2);
+    const float expect = 0.5;
+    ASSERT_EQ(actual, expect);
+}
+
+TEST(Distance, angular_distance) {
+    const auto p1 = Point(0, {2, 0});
+    const auto p2 = Point(1, {2, 2 * static_cast<float>(sqrt(3))});
+    const auto actual = angular_distance(p1, p2);
+    const float expect = static_cast<float>(1) / 3;
+    ASSERT_EQ(static_cast<int>(actual * 100000), static_cast<int>(expect * 100000));
 }

@@ -9,6 +9,8 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <exception>
+#include <stdexcept>
 #include "nlohmann/json.hpp"
 
 using namespace std;
@@ -30,33 +32,23 @@ namespace arailib {
         return result;
     }
 
-    template<class Iterable>
-    float l2_norm(const Iterable &v1, const Iterable &v2) {
-        float result = 0;
-        for (size_t i = 0; i < v1.size(); i++) {
-            result += std::pow(v1[i] - v2[i], 2);
-        }
-        result = std::sqrt(result);
-        return result;
-    }
-
     struct Point {
         size_t id;
-        std::vector<double> x;
+        std::vector<float> x;
 
-        Point(size_t i, std::vector<double> v) {
+        Point(size_t i, std::vector<float> v) {
             id = i;
             std::copy(v.begin(), v.end(), std::back_inserter(x));
         }
 
-        Point(std::vector<double> v) {
+        Point(std::vector<float> v) {
             id = 0;
             std::copy(v.begin(), v.end(), std::back_inserter(x));
         }
 
-        double &operator[](size_t i) { return x[i]; }
+        auto& operator [] (size_t i) { return x[i]; }
 
-        const double &operator[](size_t i) const { return x[i]; }
+        const auto& operator [] (size_t i) const { return x[i]; }
 
         bool operator==(const Point &o) const {
             if (id == o.id) return true;
@@ -107,7 +99,36 @@ namespace arailib {
         const auto &operator[](const Point &p) const { return series_list[p.id]; }
     };
 
-    template<class T>
+    typedef function<float(Point, Point)> DistanceFunction;
+
+    float euclidean_distance(const Point& p1, const Point& p2) {
+        float result = 0;
+        for (size_t i = 0; i < p1.size(); i++) {
+            result += std::pow(p1[i] - p2[i], 2);
+        }
+        result = std::sqrt(result);
+        return result;
+    }
+
+    float l2_norm(const Point& p) {
+        float result = 0;
+        for (size_t i = 0; i < p.size(); i++) {
+            result += std::pow(p[i], 2);
+        }
+        result = std::sqrt(result);
+        return result;
+    }
+
+    float cosine_similarity(const Point& p1, const Point& p2) {
+        return static_cast<float>(inner_product(p1.begin(), p1.end(), p2.begin(), 0.0)
+            / (l2_norm(p1) * l2_norm(p2)));
+    }
+
+    float angular_distance(const Point& p1, const Point& p2) {
+        return acos(cosine_similarity(p1, p2)) / static_cast<float>(M_PI);
+    }
+
+    template <class T = float>
     std::vector<T> split(std::string &input, char delimiter = ',') {
         std::istringstream stream(input);
         std::string field;
@@ -120,17 +141,18 @@ namespace arailib {
         return result;
     }
 
-    Series read_csv(const std::string &path, const size_t &nrows = -1,
+    template <class T = float>
+    Series read_csv(const std::string &path, const int& nrows = -1,
                     const bool &skip_header = false) {
         std::ifstream ifs(path);
-        if (!ifs) throw "Can't open file!";
+        if (!ifs) throw runtime_error("Can't open file!");
         std::string line;
 
         Series series;
         for (size_t i = 0; (i < nrows) && std::getline(ifs, line); ++i) {
             // if first line is the header then skip
             if (skip_header && (i == 0)) continue;
-            std::vector<double> v = split<double>(line);
+            std::vector<T> v = split<T>(line);
             series.push_back(Point(i, v));
         }
         return series;
@@ -150,13 +172,22 @@ namespace arailib {
         }
     }
 
-    json read_config(const string config_path = "./config.json") {
+    json read_config(const string& config_path = "./config.json") {
         json config;
         ifstream ifs(config_path);
-        if (ifs.fail()) throw "Error: config.json not found.";
+        if (ifs.fail()) throw runtime_error("Can't open file!");
         ifs >> config;
         return config;
     }
+
+    struct Edge {
+        size_t query_id, point_id;
+        Edge(size_t query_id, size_t point_id) : query_id(query_id), point_id(point_id) {};
+        Edge(vector<size_t> v) : query_id(v[0]), point_id(v[1]) {};
+    };
+
+    typedef vector<Edge> EdgeSeries;
+    typedef vector<EdgeSeries> EdgeSeriesList;
 }
 
 #endif //ARAILIB_ARAILIB_HPP
