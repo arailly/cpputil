@@ -1,6 +1,8 @@
 #ifndef ARAILIB_ARAILIB_HPP
 #define ARAILIB_ARAILIB_HPP
 
+#define _USE_MATH_DEFINES
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -36,6 +38,8 @@ namespace arailib {
         size_t id;
         std::vector<float> x;
 
+        Point() : id(0), x({0}) {}
+
         Point(size_t i, std::vector<float> v) {
             id = i;
             std::copy(v.begin(), v.end(), std::back_inserter(x));
@@ -47,7 +51,6 @@ namespace arailib {
         }
 
         auto& operator [] (size_t i) { return x[i]; }
-
         const auto& operator [] (size_t i) const { return x[i]; }
 
         bool operator==(const Point &o) const {
@@ -61,9 +64,7 @@ namespace arailib {
         }
 
         size_t size() const { return x.size(); }
-
         auto begin() const { return x.begin(); }
-
         auto end() const { return x.end(); }
 
         void show() const {
@@ -75,7 +76,7 @@ namespace arailib {
         }
     };
 
-    typedef std::vector<Point> Series;
+    typedef vector<Point> Series;
 
     class SeriesList {
     private:
@@ -124,12 +125,13 @@ namespace arailib {
             / (l2_norm(p1) * l2_norm(p2)));
     }
 
+    const float pi = static_cast<const float>(3.14159265358979323846264338);
     float angular_distance(const Point& p1, const Point& p2) {
-        return acos(cosine_similarity(p1, p2)) / static_cast<float>(M_PI);
+        return acos(cosine_similarity(p1, p2)) / pi;
     }
 
     template <class T = float>
-    std::vector<T> split(std::string &input, char delimiter = ',') {
+    vector<T> split(string &input, char delimiter = ',') {
         std::istringstream stream(input);
         std::string field;
         std::vector<T> result;
@@ -188,6 +190,153 @@ namespace arailib {
 
     typedef vector<Edge> EdgeSeries;
     typedef vector<EdgeSeries> EdgeSeriesList;
+
+    struct Node {
+        const Point point;
+        vector<reference_wrapper<const Node>> neighbors;
+        unordered_map<size_t, bool> added;
+
+        void init() { added[point.id] = true; }
+        Node() : point(Point(0, {0})) { init(); }
+        Node(Point& p) : point(move(p)) { init(); }
+        Node(const Node& n) : point(n.point), neighbors(n.neighbors) { init(); }
+
+        void add_neighbor(const Node& node) {
+            if (added.find(node.point.id) != added.end()) return;
+            added[node.point.id] = true;
+            neighbors.push_back(node);
+        }
+
+        auto get_n_neighbors() { return neighbors.size(); }
+    };
+
+    struct Edge2 {
+        Node& first;
+        Node& second;
+
+        Edge2(Node& f, Node& s) : first(f), second(s) {}
+    };
+
+    typedef vector<Edge2> EdgeList;
+
+    struct Graph {
+        vector<Node> nodes;
+
+        Graph(Series& series) {
+            for (auto& point : series) {
+                nodes.emplace_back(point);
+            }
+        }
+
+        Graph(const Graph& g) : nodes(g.nodes) {}
+
+        void set_edge(EdgeList& edge_list) {
+            for (auto& edge : edge_list) {
+                nodes[edge.first.point.id].add_neighbor(edge.second);
+            }
+        }
+
+        auto size() const { return nodes.size(); }
+        auto begin() const { return nodes.begin(); }
+        auto end() const { return nodes.end(); }
+        auto& operator [] (size_t i) { return nodes[i]; }
+        auto& operator [] (const Node& n) { return nodes[n.point.id]; }
+        const auto& operator [] (size_t i) const { return nodes[i]; }
+        const auto& operator [] (const Node& n) const { return nodes[n.point.id]; }
+    };
+
+    Graph create_graph_from_file(const string& data_path, const string& graph_path, int n = -1) {
+        auto series = read_csv(data_path, n);
+
+        ifstream ifs(graph_path);
+        if (!ifs) throw "Can't open file!";
+
+        Graph graph(series);
+        string line;
+        while (getline(ifs, line)) {
+            auto&& id_pair = split<size_t>(line);
+            graph[id_pair[0]].add_neighbor(graph[id_pair[1]]);
+        }
+
+        return graph;
+    }
+
+    Graph create_graph_from_file(Series& series, const string& graph_path) {
+        ifstream ifs(graph_path);
+        if (!ifs) throw "Can't open file!";
+
+        Graph graph(series);
+        string line;
+        while (getline(ifs, line)) {
+            auto&& id_pair = split<size_t>(line);
+            graph[id_pair[0]].add_neighbor(graph[id_pair[1]]);
+        }
+
+        return graph;
+    }
+
+    void write_graph(const string& save_path, const Graph& graph) {
+        ofstream ofs(save_path);
+        string line;
+        for (const auto& node : graph) {
+            line = to_string(node.point.id);
+            for (const auto& neighbor : node.neighbors) {
+                line += ',' + to_string(neighbor.get().point.id);
+            }
+            line += '\n';
+            ofs << line;
+        }
+    }
+
+    // nsw's knn_search
+    vector<reference_wrapper<const Node>>
+    knn_search(const Point& query, const uint k, const Node& start_node) {
+        unordered_map<size_t, bool> checked;
+        checked[start_node.point.id] = true;
+
+        multimap<float, reference_wrapper<const Node>> candidates, result_map;
+        const auto distance_to_start_node = euclidean_distance(query, start_node.point);
+        candidates.emplace(distance_to_start_node, start_node);
+        result_map.emplace(distance_to_start_node, start_node);
+
+        while (!candidates.empty()) {
+            const auto nearest_pair = candidates.extract(candidates.begin());
+            const auto& distance_to_nearest = nearest_pair.key();
+            const Node& nearest = nearest_pair.mapped().get();
+
+            auto& furthest = *(--result_map.cend());
+            // check if all elements are evaluated
+            if (distance_to_nearest > furthest.first) break;
+
+            for (auto& neighbor : nearest.neighbors) {
+                if (checked[neighbor.get().point.id]) continue;
+                checked[neighbor.get().point.id] = true;
+
+                const auto& distance_to_neighbor = euclidean_distance(query, neighbor.get().point);
+
+                if (result_map.size() < k) {
+                    candidates.emplace(distance_to_neighbor, neighbor.get());
+                    result_map.emplace(distance_to_neighbor, neighbor.get());
+                    continue;
+                }
+
+                const auto& furthest_ = *(--result_map.end());
+                const auto& distance_to_furthest_ = euclidean_distance(query, furthest_.second.get().point);
+
+                if (distance_to_neighbor < distance_to_furthest_) {
+                    candidates.emplace(distance_to_neighbor, neighbor.get());
+                    result_map.emplace(distance_to_neighbor, neighbor.get());
+                    result_map.erase(--result_map.cend());
+                }
+            }
+        }
+        // result_map => result vector;
+        return [&result_map]() {
+            vector<reference_wrapper<const Node>> r;
+            for (const auto& neighbor : result_map) r.push_back(neighbor.second.get());
+            return r;
+        }();
+    }
 }
 
 #endif //ARAILIB_ARAILIB_HPP
