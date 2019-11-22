@@ -164,3 +164,13 @@ TEST(graph, knn_search) {
     ASSERT_EQ(result[1].get().point.id, 3);
     ASSERT_EQ(result[2].get().point.id, 2);
 }
+
+TEST(graph, load_graph) {
+    unsigned n = 1000;
+    const string data_path = "/Users/yusuke-arai/workspace/dataset/sift/sift_base.csv";
+    const string graph_path = "/Users/yusuke-arai/workspace/index/nsg-sift1k-m20.csv";
+    const auto graph = load_graph(data_path, graph_path, n);
+    ASSERT_EQ(graph.size(), n);
+    ASSERT_EQ(graph[0].get_n_neighbors(), 34);
+    ASSERT_EQ(graph[0].neighbors[0].get().point.id, 2);
+}

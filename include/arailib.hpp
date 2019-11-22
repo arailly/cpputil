@@ -207,7 +207,7 @@ namespace arailib {
             neighbors.push_back(node);
         }
 
-        auto get_n_neighbors() { return neighbors.size(); }
+        auto get_n_neighbors() const { return neighbors.size(); }
     };
 
     struct Edge2 {
@@ -249,7 +249,7 @@ namespace arailib {
         auto series = read_csv(data_path, n);
 
         ifstream ifs(graph_path);
-        if (!ifs) throw "Can't open file!";
+        if (!ifs) throw runtime_error("Can't open file!");
 
         Graph graph(series);
         string line;
@@ -263,7 +263,7 @@ namespace arailib {
 
     Graph create_graph_from_file(Series& series, const string& graph_path) {
         ifstream ifs(graph_path);
-        if (!ifs) throw "Can't open file!";
+        if (!ifs) throw runtime_error("Can't open file!");
 
         Graph graph(series);
         string line;
@@ -336,6 +336,24 @@ namespace arailib {
             for (const auto& neighbor : result_map) r.push_back(neighbor.second.get());
             return r;
         }();
+    }
+
+    Graph load_graph(const string& data_path, const string& graph_path, int n = -1) {
+        auto series = read_csv(data_path, n);
+
+        ifstream ifs(graph_path);
+        if (!ifs) throw runtime_error("Can't open file!");
+
+        Graph graph(series);
+        string line;
+        while (getline(ifs, line)) {
+            const auto&& ids = split<size_t>(line);
+            for (unsigned i = 1; i < ids.size(); i++) {
+                graph[ids[0]].add_neighbor(graph[ids[i]]);
+            }
+        }
+
+        return graph;
     }
 }
 
