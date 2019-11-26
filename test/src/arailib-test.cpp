@@ -60,6 +60,15 @@ TEST(Series, read_csv_test) {
     ASSERT_EQ(actual, expect);
 }
 
+TEST(Series, load_data) {
+    const string data_dir = "/Users/yusuke-arai/workspace/dataset/sift/sift_base/";
+    const string data_path = "/Users/yusuke-arai/workspace/dataset/sift/sift_base.csv";
+    const auto actual = load_data(data_dir, 2);
+    const auto expect = read_csv(data_path, 2000);
+    ASSERT_EQ(actual.size(), expect.size());
+    ASSERT_EQ(actual[1999].id, expect[1999].id);
+}
+
 TEST(Series, write_csv_test) {
     const std::string data_path = "../../../test/data/write_series.csv";
     arailib::Series write_series;

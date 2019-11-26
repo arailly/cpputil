@@ -13,13 +13,13 @@
 #include <sstream>
 #include <exception>
 #include <stdexcept>
+#include <omp.h>
 #include "nlohmann/json.hpp"
 
 using namespace std;
 using namespace nlohmann;
 
 namespace arailib {
-
     template<class UnaryOperation, class Iterable>
     Iterable fmap(UnaryOperation op, const Iterable &v) {
         Iterable result;
@@ -156,6 +156,26 @@ namespace arailib {
             if (skip_header && (i == 0)) continue;
             std::vector<T> v = split<T>(line);
             series.push_back(Point(i, v));
+        }
+        return series;
+    }
+
+    const int n_max_threads = omp_get_max_threads();
+
+    Series load_data(const string& dir, int nk) {
+        auto series = Series(nk * 1000);
+#pragma omp parallel for
+        for (int i = 0; i < nk; i++) {
+            const string path = dir + '/' + to_string(i) + ".csv";
+            ifstream ifs(path);
+            if (!ifs) throw runtime_error("Can't open file!");
+            string line;
+            while(getline(ifs, line)) {
+                auto v = split(line);
+                const auto id = static_cast<size_t>(v[0]);
+                v.erase(v.begin());
+                series[id] = Point(id, v);
+            }
         }
         return series;
     }
