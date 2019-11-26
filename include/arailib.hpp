@@ -162,12 +162,12 @@ namespace arailib {
 
     const int n_max_threads = omp_get_max_threads();
 
-    Series load_data(const string& dir, int nk) {
+    Series load_data(const string& path, int nk) {
         auto series = Series(nk * 1000);
 #pragma omp parallel for
         for (int i = 0; i < nk; i++) {
-            const string path = dir + '/' + to_string(i) + ".csv";
-            ifstream ifs(path);
+            const string data_path = path + '/' + to_string(i) + ".csv";
+            ifstream ifs(data_path);
             if (!ifs) throw runtime_error("Can't open file!");
             string line;
             while(getline(ifs, line)) {
