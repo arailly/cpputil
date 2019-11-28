@@ -235,7 +235,6 @@ namespace arailib {
         void init() { added[point.id] = true; }
         Node() : point(Point(0, {0})) { init(); }
         Node(Point& p) : point(move(p)) { init(); }
-        Node(const Node& n) : point(n.point), neighbors(n.neighbors) { init(); }
 
         void add_neighbor(const Node& node) {
             if (added.find(node.point.id) != added.end()) return;
@@ -263,8 +262,6 @@ namespace arailib {
                 nodes.emplace_back(point);
             }
         }
-
-        Graph(const Graph& g) : nodes(g.nodes) {}
 
         void set_edge(EdgeList& edge_list) {
             for (auto& edge : edge_list) {
