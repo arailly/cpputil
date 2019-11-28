@@ -311,16 +311,87 @@ namespace arailib {
         return graph;
     }
 
-    void write_graph(const string& save_path, const Graph& graph) {
-        ofstream ofs(save_path);
-        string line;
-        for (const auto& node : graph) {
-            line = to_string(node.point.id);
-            for (const auto& neighbor : node.neighbors) {
-                line += ',' + to_string(neighbor.get().point.id);
+    bool is_csv(const string& path) {
+        return (path.rfind(".csv", path.size()) < path.size());
+    }
+
+    Graph load_graph(Series& series, const string& graph_path, int n) {
+        // load nsg
+        return [&series, &graph_path, n]() {
+            // csv
+            if (is_csv(graph_path)) {
+                ifstream ifs(graph_path);
+                if (!ifs) throw runtime_error("Can't open file!");
+
+                Graph graph(series);
+                string line;
+                while (getline(ifs, line)) {
+                    const auto&& ids = split<size_t>(line);
+                    graph[ids[0]].add_neighbor(graph[ids[1]]);
+                }
+                return graph;
             }
-            line += '\n';
-            ofs << line;
+
+            // dir
+            Graph graph(series);
+
+#pragma omp parallel for
+            for (int i = 0; i < n; i++) {
+                const string path = graph_path + "/" + to_string(i) + ".csv";
+                ifstream ifs(path);
+                string line;
+                while (getline(ifs, line)) {
+                    const auto ids = split<size_t>(line);
+                    graph[ids[0]].add_neighbor(graph[ids[1]]);
+                }
+            }
+            return graph;
+        }();
+    }
+
+    Graph load_graph(const string& data_path, const string& graph_path, int n) {
+        // load data
+        auto series = [&data_path, n]() {
+            // csv
+            if (is_csv(data_path)) return read_csv(data_path, n);
+            // dir
+            return load_data(data_path, n);
+        }();
+
+        // load nsg
+        return load_graph(series, graph_path, n);
+    }
+
+    void write_graph(const string& save_path, const Graph& graph) {
+        // csv
+        if (is_csv(save_path)) {
+            ofstream ofs(save_path);
+            string line;
+            for (const auto& node : graph) {
+                line = to_string(node.point.id);
+                for (const auto& neighbor : node.neighbors) {
+                    line += ',' + to_string(neighbor.get().point.id);
+                }
+                line += '\n';
+                ofs << line;
+            }
+            return;
+        }
+
+        // dir
+        vector<string> lines(ceil(graph.size() / 1000.0));
+        for (const auto& node : graph) {
+            const size_t line_i = node.point.id / 1000;
+            for (const auto& neighbor : node.neighbors) {
+                lines[line_i] += to_string(node.point.id) + ',' +
+                                 to_string(neighbor.get().point.id) + '\n';
+            }
+        }
+
+        for (int i = 0; i < lines.size(); i++) {
+            const string path = save_path + "/" + to_string(i) + ".csv";
+            ofstream ofs(path);
+            ofs << lines[i];
         }
     }
 
@@ -372,24 +443,6 @@ namespace arailib {
             for (const auto& neighbor : result_map) r.push_back(neighbor.second.get());
             return r;
         }();
-    }
-
-    Graph load_graph(const string& data_path, const string& graph_path, int n = -1) {
-        auto series = read_csv(data_path, n);
-
-        ifstream ifs(graph_path);
-        if (!ifs) throw runtime_error("Can't open file!");
-
-        Graph graph(series);
-        string line;
-        while (getline(ifs, line)) {
-            const auto&& ids = split<size_t>(line);
-            for (unsigned i = 1; i < ids.size(); i++) {
-                graph[ids[0]].add_neighbor(graph[ids[i]]);
-            }
-        }
-
-        return graph;
     }
 }
 
