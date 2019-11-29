@@ -11,6 +11,7 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 #include <exception>
 #include <stdexcept>
 #include <omp.h>
