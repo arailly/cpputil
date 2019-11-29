@@ -446,7 +446,7 @@ namespace arailib {
     // nsg's knn_search
     vector<reference_wrapper<const Node>>
     knn_search(const Point query, const unsigned k,
-               const Node& start_node, const unsigned n_candidate = 40) {
+               const Node& start_node, const unsigned l) {
         const auto start = chrono::system_clock::now();
 
         unordered_map<size_t, bool> checked, added;
@@ -460,7 +460,7 @@ namespace arailib {
             bool is_updated = false;
             for (auto candidate_pair_ptr = candidates.begin();
                  candidate_pair_ptr != candidates.end();
-                 candidate_pair_ptr++) {
+                 ++candidate_pair_ptr) {
 
                 const auto& candidate = candidate_pair_ptr->second.get();
                 if (checked[candidate.point.id]) continue;
@@ -474,8 +474,8 @@ namespace arailib {
                     const auto d = euclidean_distance(query, neighbor.get().point);
                     candidates.emplace(d, neighbor.get());
                 }
-                // resize candidates n_candidate
-                while (candidates.size() > n_candidate) candidates.erase(--candidates.cend());
+                // resize candidates l
+                while (candidates.size() > l) candidates.erase(--candidates.cend());
                 candidate_pair_ptr = candidates.begin();
             }
             if (!is_updated) break;
