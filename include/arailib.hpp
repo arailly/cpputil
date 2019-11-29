@@ -442,52 +442,6 @@ namespace arailib {
             return r;
         }();
     }
-
-    // nsg's knn_search
-    vector<reference_wrapper<const Node>>
-    knn_search(const Point query, const unsigned k,
-               const Node& start_node, const unsigned l) {
-        const auto start = chrono::system_clock::now();
-
-        unordered_map<size_t, bool> checked, added;
-        added[start_node.point.id] = true;
-
-        multimap<float, reference_wrapper<const Node>> candidates;
-        const auto distance_to_start_node = euclidean_distance(query, start_node.point);
-        candidates.emplace(distance_to_start_node, start_node);
-
-        while (true) {
-            bool is_updated = false;
-            for (auto candidate_pair_ptr = candidates.begin();
-                 candidate_pair_ptr != candidates.end();
-                 ++candidate_pair_ptr) {
-
-                const auto& candidate = candidate_pair_ptr->second.get();
-                if (checked[candidate.point.id]) continue;
-                checked[candidate.point.id] = true;
-                is_updated = true;
-
-                for (const auto& neighbor : candidate.neighbors) {
-                    if (added[neighbor.get().point.id]) continue;
-                    added[neighbor.get().point.id] = true;
-
-                    const auto d = euclidean_distance(query, neighbor.get().point);
-                    candidates.emplace(d, neighbor.get());
-                }
-                // resize candidates l
-                while (candidates.size() > l) candidates.erase(--candidates.cend());
-                candidate_pair_ptr = candidates.begin();
-            }
-            if (!is_updated) break;
-        }
-
-        vector<reference_wrapper<const Node>> result;
-        for (const auto& c : candidates) {
-            result.emplace_back(c.second.get());
-            if (result.size() >= k) break;
-        }
-        return result;
-    }
 }
 
 #endif //ARAILIB_ARAILIB_HPP
