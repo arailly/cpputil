@@ -7,9 +7,11 @@
 #include <queue>
 #include <functional>
 #include "gtest/gtest.h"
-#include "arailib.hpp"
+#include <arailib.hpp>
+#include <graph.hpp>
 
 using namespace arailib;
+using namespace graph;
 
 TEST(Functional, fmap_test) {
     std::vector<int> v{1, 2, 3};
