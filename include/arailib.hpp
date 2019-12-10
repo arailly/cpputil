@@ -131,6 +131,12 @@ namespace arailib {
         return acos(cosine_similarity(p1, p2)) / pi;
     }
 
+    DistanceFunction select_distance(const string& distance) {
+        if (distance == "euclidean") return euclidean_distance;
+        if (distance == "angular")   return angular_distance;
+        else throw runtime_error("invalid distance");
+    }
+
     template <class T = float>
     vector<T> split(string &input, char delimiter = ',') {
         std::istringstream stream(input);
