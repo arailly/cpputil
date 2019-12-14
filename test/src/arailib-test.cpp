@@ -62,12 +62,21 @@ TEST(Series, read_csv_test) {
     ASSERT_EQ(actual, expect);
 }
 
-TEST(Series, load_data) {
+TEST(Series, load_data_dir) {
     const string data_dir = "/Users/yusuke-arai/workspace/dataset/sift/sift_base/";
     const string data_path = "/Users/yusuke-arai/workspace/dataset/sift/sift_base.csv";
     const auto actual = load_data(data_dir, 2);
     const auto expect = read_csv(data_path, 2000);
     ASSERT_EQ(actual.size(), expect.size());
+    ASSERT_EQ(actual[1999].id, expect[1999].id);
+}
+
+TEST(Series, load_data_file) {
+    const string data_path = "/Users/yusuke-arai/workspace/dataset/sift/sift_base.csv";
+    const auto actual = load_data(data_path, 2000);
+    const auto expect = read_csv(data_path, 2000);
+    ASSERT_EQ(actual.size(), expect.size());
+    ASSERT_EQ(actual[0].x.size(), expect[0].x.size());
     ASSERT_EQ(actual[1999].id, expect[1999].id);
 }
 
@@ -152,29 +161,29 @@ TEST(graph, create_graph_from_file) {
     ASSERT_EQ(graph[0].neighbors[1].get().point.id, 6);
 }
 
-TEST(graph, knn_search) {
-    const auto query = Point(5, {6});
-    const auto k = 3;
-
-    const auto p0 = Point(0, {1});
-    const auto p1 = Point(1, {2});
-    const auto p2 = Point(2, {3});
-    const auto p3 = Point(3, {4});
-    const auto p4 = Point(4, {5});
-
-    auto series = Series{p0, p1, p2, p3, p4};
-    auto graph = Graph(series);
-    graph[0].add_neighbor(graph[1]);
-    graph[1].add_neighbor(graph[2]);
-    graph[2].add_neighbor(graph[3]);
-    graph[3].add_neighbor(graph[4]);
-
-    const auto result = knn_search(query, k, graph[0]);
-    ASSERT_EQ(result.size(), k);
-    ASSERT_EQ(result[0].get().point.id, 4);
-    ASSERT_EQ(result[1].get().point.id, 3);
-    ASSERT_EQ(result[2].get().point.id, 2);
-}
+//TEST(graph, knn_search) {
+//    const auto query = Point(5, {6});
+//    const auto k = 3;
+//
+//    const auto p0 = Point(0, {1});
+//    const auto p1 = Point(1, {2});
+//    const auto p2 = Point(2, {3});
+//    const auto p3 = Point(3, {4});
+//    const auto p4 = Point(4, {5});
+//
+//    auto series = Series{p0, p1, p2, p3, p4};
+//    auto graph = Graph(series);
+//    graph[0].add_neighbor(graph[1]);
+//    graph[1].add_neighbor(graph[2]);
+//    graph[2].add_neighbor(graph[3]);
+//    graph[3].add_neighbor(graph[4]);
+//
+//    const auto result = knn_search(query, k, graph[0]);
+//    ASSERT_EQ(result.size(), k);
+//    ASSERT_EQ(result[0].get().point.id, 4);
+//    ASSERT_EQ(result[1].get().point.id, 3);
+//    ASSERT_EQ(result[2].get().point.id, 2);
+//}
 
 TEST(graph, load_graph) {
     unsigned n = 1000;

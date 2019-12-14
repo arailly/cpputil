@@ -169,26 +169,24 @@ namespace arailib {
 
     const int n_max_threads = omp_get_max_threads();
 
-    Series load_data(const string& path, int nk = 0) {
+    Series load_data(const string& path, int n = 0) {
         // file path
         if (path.rfind(".csv", path.size()) < path.size()) {
             auto series = Series();
             ifstream ifs(path);
             if (!ifs) throw runtime_error("Can't open file!");
             string line;
-            while(getline(ifs, line)) {
+            for (size_t i = 0; (i < n) && std::getline(ifs, line); ++i) {
                 auto v = split(line);
-                const auto id = static_cast<size_t>(v[0]);
-                v.erase(v.begin());
-                series.push_back(Point(id, v));
+                series.push_back(Point(i, v));
             }
             return series;
         }
 
         // dir path
-        auto series = Series(nk * 1000);
+        auto series = Series(n * 1000);
 #pragma omp parallel for
-        for (int i = 0; i < nk; i++) {
+        for (int i = 0; i < n; i++) {
             const string data_path = path + '/' + to_string(i) + ".csv";
             ifstream ifs(data_path);
             if (!ifs) throw runtime_error("Can't open file!");
