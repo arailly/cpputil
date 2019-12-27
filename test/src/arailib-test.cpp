@@ -112,6 +112,14 @@ TEST(Distance, angular_distance) {
     ASSERT_EQ(static_cast<int>(actual * 100000), static_cast<int>(expect * 100000));
 }
 
+TEST(Distance, manhattan_distance) {
+    auto const p0 = Point(0, {2, 0});
+    auto const p1 = Point(0, {4, -2});
+    auto const actual = manhattan_distance(p0, p1);
+    auto const expect = 4;
+    ASSERT_EQ(actual, expect);
+}
+
 TEST(graph, node) {
     auto p0 = Point(0, {1});
     auto p1 = Point(1, {2});

@@ -112,6 +112,14 @@ namespace arailib {
         return result;
     }
 
+    float manhattan_distance(const Point& p1, const Point& p2) {
+        float result = 0;
+        for (size_t i = 0; i < p1.size(); i++) {
+            result += std::abs(p1[i] - p2[i]);
+        }
+        return result;
+    }
+
     float l2_norm(const Point& p) {
         float result = 0;
         for (size_t i = 0; i < p.size(); i++) {
@@ -133,6 +141,7 @@ namespace arailib {
 
     DistanceFunction select_distance(const string& distance) {
         if (distance == "euclidean") return euclidean_distance;
+        if (distance == "manhattan") return manhattan_distance;
         if (distance == "angular")   return angular_distance;
         else throw runtime_error("invalid distance");
     }
