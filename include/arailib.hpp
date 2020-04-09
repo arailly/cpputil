@@ -15,38 +15,39 @@
 #include <exception>
 #include <stdexcept>
 #include <omp.h>
-#include "nlohmann/json.hpp"
+#include <json.hpp>
 
 using namespace std;
 using namespace nlohmann;
 
 namespace arailib {
-    template<class UnaryOperation, class Iterable>
+    template<typename UnaryOperation, typename Iterable>
     Iterable fmap(UnaryOperation op, const Iterable &v) {
         Iterable result;
         std::transform(v.begin(), v.end(), std::back_inserter(result), op);
         return result;
     }
 
-    template<class Predicate, class Iterable>
+    template<typename Predicate, typename Iterable>
     Iterable filter(Predicate pred, const Iterable &v) {
         Iterable result;
         std::copy_if(v.begin(), v.end(), std::back_inserter(result), pred);
         return result;
     }
 
-    struct Point {
+    template <typename T = float>
+    struct Data {
         size_t id;
-        std::vector<float> x;
+        std::vector<T> x;
 
-        Point() : id(0), x({0}) {}
+        Data() : id(0), x({0}) {}
 
-        Point(size_t i, std::vector<float> v) {
+        Data(size_t i, std::vector<T> v) {
             id = i;
             std::copy(v.begin(), v.end(), std::back_inserter(x));
         }
 
-        Point(std::vector<float> v) {
+        Data(std::vector<T> v) {
             id = 0;
             std::copy(v.begin(), v.end(), std::back_inserter(x));
         }
@@ -54,12 +55,12 @@ namespace arailib {
         auto& operator [] (size_t i) { return x[i]; }
         const auto& operator [] (size_t i) const { return x[i]; }
 
-        bool operator==(const Point &o) const {
+        bool operator==(const Data &o) const {
             if (id == o.id) return true;
             return false;
         }
 
-        bool operator!=(const Point &o) const {
+        bool operator!=(const Data &o) const {
             if (id != o.id) return true;
             return false;
         }
@@ -77,33 +78,17 @@ namespace arailib {
         }
     };
 
-    typedef vector<Point> Series;
+    template <typename T = float>
+    using Series = vector<Data<T>>;
 
-    class SeriesList {
-    private:
-        vector<Series> series_list;
+    template <typename T = float>
+    using SeriesList = vector<vector<Data<T>>>;
 
-    public:
-        SeriesList(size_t vector_size) { series_list.resize(vector_size); }
+    template <typename T = float>
+    using DistanceFunction = function<float(Data<T>, Data<T>)>;
 
-        auto size() const { return series_list.size(); }
-
-        auto begin() const { return series_list.begin(); }
-
-        auto end() const { return series_list.end(); }
-
-        auto &operator[](size_t i) { return series_list[i]; }
-
-        auto &operator[](const Point &p) { return series_list[p.id]; }
-
-        const auto &operator[](size_t i) const { return series_list[i]; }
-
-        const auto &operator[](const Point &p) const { return series_list[p.id]; }
-    };
-
-    typedef function<float(Point, Point)> DistanceFunction;
-
-    float euclidean_distance(const Point& p1, const Point& p2) {
+    template <typename T = float>
+    auto euclidean_distance(const Data<T>& p1, const Data<T>& p2) {
         float result = 0;
         for (size_t i = 0; i < p1.size(); i++) {
             result += std::pow(p1[i] - p2[i], 2);
@@ -112,7 +97,8 @@ namespace arailib {
         return result;
     }
 
-    float manhattan_distance(const Point& p1, const Point& p2) {
+    template <typename T = float>
+    auto manhattan_distance(const Data<T>& p1, const Data<T>& p2) {
         float result = 0;
         for (size_t i = 0; i < p1.size(); i++) {
             result += std::abs(p1[i] - p2[i]);
@@ -120,7 +106,8 @@ namespace arailib {
         return result;
     }
 
-    float l2_norm(const Point& p) {
+    template <typename T = float>
+    auto l2_norm(const Data<T>& p) {
         float result = 0;
         for (size_t i = 0; i < p.size(); i++) {
             result += std::pow(p[i], 2);
@@ -129,24 +116,27 @@ namespace arailib {
         return result;
     }
 
-    float cosine_similarity(const Point& p1, const Point& p2) {
+    template <typename T = float>
+    auto cosine_similarity(const Data<T>& p1, const Data<T>& p2) {
         return static_cast<float>(inner_product(p1.begin(), p1.end(), p2.begin(), 0.0)
             / (l2_norm(p1) * l2_norm(p2)));
     }
 
-    const float pi = static_cast<const float>(3.14159265358979323846264338);
-    float angular_distance(const Point& p1, const Point& p2) {
+    constexpr float pi = static_cast<const float>(3.14159265358979323846264338);
+
+    template <typename T = float>
+    float angular_distance(const Data<T>& p1, const Data<T>& p2) {
         return acos(cosine_similarity(p1, p2)) / pi;
     }
 
-    DistanceFunction select_distance(const string& distance) {
-        if (distance == "euclidean") return euclidean_distance;
-        if (distance == "manhattan") return manhattan_distance;
-        if (distance == "angular")   return angular_distance;
+    auto select_distance(const string& distance) {
+        if (distance == "euclidean") return euclidean_distance<float>;
+        if (distance == "manhattan") return manhattan_distance<float>;
+        if (distance == "angular")   return angular_distance<float>;
         else throw runtime_error("invalid distance");
     }
 
-    template <class T = float>
+    template <typename T = float>
     vector<T> split(string &input, char delimiter = ',') {
         std::istringstream stream(input);
         std::string field;
@@ -159,41 +149,42 @@ namespace arailib {
         return result;
     }
 
-    template <class T = float>
-    Series read_csv(const std::string &path, const int& nrows = -1,
+    template <typename T = float>
+    Series<T> read_csv(const std::string &path, const int& nrows = -1,
                     const bool &skip_header = false) {
         std::ifstream ifs(path);
         if (!ifs) throw runtime_error("Can't open file!");
         std::string line;
 
-        Series series;
+        Series<T> series;
         for (size_t i = 0; (i < nrows) && std::getline(ifs, line); ++i) {
             // if first line is the header then skip
             if (skip_header && (i == 0)) continue;
             std::vector<T> v = split<T>(line);
-            series.push_back(Point(i, v));
+            series.push_back(Data<T>(i, v));
         }
         return series;
     }
 
     const int n_max_threads = omp_get_max_threads();
 
-    Series load_data(const string& path, int n = 0) {
+    template <typename T = float>
+    Series<T> load_data(const string& path, int n = 0) {
         // file path
         if (path.rfind(".csv", path.size()) < path.size()) {
-            auto series = Series();
+            auto series = Series<T>();
             ifstream ifs(path);
             if (!ifs) throw runtime_error("Can't open file!");
             string line;
             for (size_t i = 0; (i < n) && std::getline(ifs, line); ++i) {
                 auto v = split(line);
-                series.push_back(Point(i, v));
+                series.push_back(Data<T>(i, v));
             }
             return series;
         }
 
         // dir path
-        auto series = Series(n * 1000);
+        auto series = Series<T>(n * 1000);
 #pragma omp parallel for
         for (int i = 0; i < n; i++) {
             const string data_path = path + '/' + to_string(i) + ".csv";
@@ -204,7 +195,7 @@ namespace arailib {
                 auto v = split(line);
                 const auto id = static_cast<size_t>(v[0]);
                 v.erase(v.begin());
-                series[id] = Point(id, v);
+                series[id] = Data<T>(id, v);
             }
         }
         return series;

@@ -33,13 +33,13 @@ namespace graph {
     typedef vector<EdgeSeries> EdgeSeriesList;
 
     struct Node {
-        const Point point;
+        const Data point;
         vector<reference_wrapper<const Node>> neighbors;
         unordered_map<size_t, bool> added;
 
         void init() { added[point.id] = true; }
-        Node() : point(Point(0, {0})) { init(); }
-        Node(Point& p) : point(move(p)) { init(); }
+        Node() : point(Data(0, {0})) { init(); }
+        Node(Data& p) : point(move(p)) { init(); }
 
         void add_neighbor(const Node& node) {
             if (added.find(node.point.id) != added.end()) return;
