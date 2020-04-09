@@ -82,6 +82,9 @@ namespace arailib {
     using Series = vector<Data<T>>;
 
     template <typename T = float>
+    using RefSeries = vector<reference_wrapper<const Data<T>>>;
+
+    template <typename T = float>
     using SeriesList = vector<vector<Data<T>>>;
 
     template <typename T = float>
