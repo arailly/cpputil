@@ -120,9 +120,15 @@ namespace arailib {
     }
 
     template <typename T = float>
+    auto clip(const T val, const T min_val, const T max_val) {
+        return max(min(val, max_val), min_val);
+    }
+
+    template <typename T = float>
     auto cosine_similarity(const Data<T>& p1, const Data<T>& p2) {
-        return static_cast<float>(inner_product(p1.begin(), p1.end(), p2.begin(), 0.0)
-            / (l2_norm(p1) * l2_norm(p2)));
+        float val = inner_product(p1.begin(), p1.end(), p2.begin(), 0.0)
+            / (l2_norm(p1) * l2_norm(p2));
+        return clip(val, static_cast<float>(-1), static_cast<float>(1));
     }
 
     constexpr float pi = static_cast<const float>(3.14159265358979323846264338);
