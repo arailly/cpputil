@@ -4,6 +4,6 @@ set(CMAKE_CXX_STANDARD 14)
 add_executable(arailib_test test.cpp)
 
 target_link_libraries(arailib_test gtest gtest_main)
-include_directories(arailib_test PRIVATE ${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -Og")

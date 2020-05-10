@@ -129,3 +129,20 @@ TEST(utility, clip) {
     ASSERT_EQ(clip(val_2, min_val, max_val), val_2);
     ASSERT_EQ(clip(val_3, min_val, max_val), max_val);
 }
+
+TEST(search, scan_knn_search) {
+    Series<> series;
+    int n = 10;
+    for (int i = 0; i < n; ++i) {
+        series.push_back(Data<>(i, {(float)i}));
+    }
+
+    const Data<> query({10});
+
+    int k = 3;
+    const auto result = scan_knn_search(query, k, series);
+
+    ASSERT_EQ(result.size(), k);
+    ASSERT_EQ(result[0].get(), series[n - 1]);
+    ASSERT_EQ(result[1].get(), series[n - 2]);
+}
