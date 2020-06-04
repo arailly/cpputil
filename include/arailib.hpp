@@ -1,8 +1,6 @@
 #ifndef ARAILIB_ARAILIB_HPP
 #define ARAILIB_ARAILIB_HPP
 
-#define _USE_MATH_DEFINES
-
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -88,7 +86,7 @@ namespace arailib {
     using SeriesList = vector<vector<Data<T>>>;
 
     template <typename T = float>
-    using DistanceFunction = function<float(Data<T>, Data<T>)>;
+    using DistanceFunction = function<double(Data<T>, Data<T>)>;
 
     template <typename T = float>
     auto euclidean_distance(const Data<T>& p1, const Data<T>& p2) {
@@ -134,7 +132,7 @@ namespace arailib {
     constexpr float pi = static_cast<const float>(3.14159265358979323846264338);
 
     template <typename T = float>
-    float angular_distance(const Data<T>& p1, const Data<T>& p2) {
+    auto angular_distance(const Data<T>& p1, const Data<T>& p2) {
         return acos(cosine_similarity(p1, p2)) / pi;
     }
 
