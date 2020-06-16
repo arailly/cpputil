@@ -54,7 +54,7 @@ TEST(Object, method_test) {
 
 TEST(Series, read_csv_test) {
     const std::string data_path = "../../../test/data/series.csv";
-    const arailib::Series<float> series = arailib::read_csv(data_path);
+    const arailib::Series<> series = arailib::read_csv(data_path);
     ASSERT_EQ(series.size(), 3);
 
     const arailib::Data<> actual = series[1];

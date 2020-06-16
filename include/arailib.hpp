@@ -33,7 +33,7 @@ namespace arailib {
         return result;
     }
 
-    template <typename T = float>
+    template <typename T = double>
     struct Data {
         size_t id;
         std::vector<T> x;
@@ -76,19 +76,19 @@ namespace arailib {
         }
     };
 
-    template <typename T = float>
+    template <typename T = double>
     using Series = vector<Data<T>>;
 
-    template <typename T = float>
+    template <typename T = double>
     using RefSeries = vector<reference_wrapper<const Data<T>>>;
 
-    template <typename T = float>
+    template <typename T = double>
     using SeriesList = vector<vector<Data<T>>>;
 
-    template <typename T = float>
+    template <typename T = double>
     using DistanceFunction = function<double(Data<T>, Data<T>)>;
 
-    template <typename T = float>
+    template <typename T = double>
     auto euclidean_distance(const Data<T>& p1, const Data<T>& p2) {
         float result = 0;
         for (size_t i = 0; i < p1.size(); i++) {
@@ -98,7 +98,7 @@ namespace arailib {
         return result;
     }
 
-    template <typename T = float>
+    template <typename T = double>
     auto manhattan_distance(const Data<T>& p1, const Data<T>& p2) {
         float result = 0;
         for (size_t i = 0; i < p1.size(); i++) {
@@ -107,7 +107,7 @@ namespace arailib {
         return result;
     }
 
-    template <typename T = float>
+    template <typename T = double>
     auto l2_norm(const Data<T>& p) {
         float result = 0;
         for (size_t i = 0; i < p.size(); i++) {
@@ -117,12 +117,12 @@ namespace arailib {
         return result;
     }
 
-    template <typename T = float>
+    template <typename T = double>
     auto clip(const T val, const T min_val, const T max_val) {
         return max(min(val, max_val), min_val);
     }
 
-    template <typename T = float>
+    template <typename T = double>
     auto cosine_similarity(const Data<T>& p1, const Data<T>& p2) {
         float val = inner_product(p1.begin(), p1.end(), p2.begin(), 0.0)
             / (l2_norm(p1) * l2_norm(p2));
@@ -131,7 +131,7 @@ namespace arailib {
 
     constexpr float pi = static_cast<const float>(3.14159265358979323846264338);
 
-    template <typename T = float>
+    template <typename T = double>
     auto angular_distance(const Data<T>& p1, const Data<T>& p2) {
         return acos(cosine_similarity(p1, p2)) / pi;
     }
@@ -143,7 +143,7 @@ namespace arailib {
         else throw runtime_error("invalid distance");
     }
 
-    template <typename T = float>
+    template <typename T = double>
     vector<T> split(string &input, char delimiter = ',') {
         std::istringstream stream(input);
         std::string field;
@@ -156,7 +156,7 @@ namespace arailib {
         return result;
     }
 
-    template <typename T = float>
+    template <typename T = double>
     Series<T> read_csv(const std::string &path, const int& nrows = -1,
                     const bool &skip_header = false) {
         std::ifstream ifs(path);
@@ -175,7 +175,7 @@ namespace arailib {
 
     const int n_max_threads = omp_get_max_threads();
 
-    template <typename T = float>
+    template <typename T = double>
     Series<T> load_data(const string& path, int n = 0) {
         // file path
         if (path.rfind(".csv", path.size()) < path.size()) {
