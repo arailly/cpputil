@@ -54,7 +54,7 @@ TEST(Object, method_test) {
 
 TEST(Series, read_csv_test) {
     const std::string data_path = "../../../test/data/series.csv";
-    const arailib::Series<> series = arailib::read_csv(data_path);
+    const arailib::Dataset<> series = arailib::read_csv(data_path);
     ASSERT_EQ(series.size(), 3);
 
     const arailib::Data<> actual = series[1];
@@ -82,13 +82,13 @@ TEST(Series, load_data_file) {
 
 TEST(Series, write_csv_test) {
     const std::string data_path = "../../../test/data/write_series.csv";
-    arailib::Series<> write_series;
+    arailib::Dataset<> write_series;
     write_series.push_back(arailib::Data<>(0, {1, 2, 3}));
     write_series.push_back(arailib::Data<>(1, {2, 3, 4}));
     write_series.push_back(arailib::Data<>(2, {3, 4, 5}));
     arailib::write_csv(write_series, data_path);
 
-    const arailib::Series<> read_series = arailib::read_csv(data_path);
+    const arailib::Dataset<> read_series = arailib::read_csv(data_path);
     ASSERT_EQ(read_series.size(), 3);
 
     const arailib::Data<> actual = read_series[1];
@@ -131,7 +131,7 @@ TEST(utility, clip) {
 }
 
 TEST(search, scan_knn_search) {
-    Series<> series;
+    Dataset<> series;
     int n = 10;
     for (int i = 0; i < n; ++i) {
         series.push_back(Data<>(i, {(float)i}));
