@@ -140,9 +140,9 @@ namespace arailib {
     }
 
     auto select_distance(const string& distance) {
-        if (distance == "euclidean") return euclidean_distance<float>;
-        if (distance == "manhattan") return manhattan_distance<float>;
-        if (distance == "angular")   return angular_distance<float>;
+        if (distance == "euclidean") return euclidean_distance<double>;
+        if (distance == "manhattan") return manhattan_distance<double>;
+        if (distance == "angular")   return angular_distance<double>;
         else throw runtime_error("invalid distance");
     }
 
