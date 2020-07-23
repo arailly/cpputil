@@ -262,6 +262,9 @@ namespace arailib {
 
         return result;
     }
+
+    constexpr auto double_max = numeric_limits<double>::max();
+    constexpr auto double_min = numeric_limits<double>::min();
 }
 
 #endif //ARAILIB_ARAILIB_HPP
