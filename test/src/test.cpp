@@ -134,7 +134,7 @@ TEST(search, scan_knn_search) {
     Dataset<> series;
     int n = 10;
     for (int i = 0; i < n; ++i) {
-        series.push_back(Data<>(i, {(float)i}));
+        series.push_back(Data<>(i, {(double)i}));
     }
 
     const Data<> query({10});
@@ -143,6 +143,6 @@ TEST(search, scan_knn_search) {
     const auto result = scan_knn_search(query, k, series);
 
     ASSERT_EQ(result.size(), k);
-    ASSERT_EQ(result[0].get(), series[n - 1]);
-    ASSERT_EQ(result[1].get(), series[n - 2]);
+    ASSERT_EQ(result[0].id, series[n - 1].id);
+    ASSERT_EQ(result[1].id, series[n - 2].id);
 }

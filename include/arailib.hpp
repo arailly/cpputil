@@ -244,27 +244,48 @@ namespace arailib {
         return (path.rfind(".csv", path.size()) < path.size());
     }
 
+    constexpr auto double_max = numeric_limits<double>::max();
+    constexpr auto double_min = numeric_limits<double>::min();
+
+    struct Neighbor {
+        double dist;
+        int id;
+
+        Neighbor() : dist(double_max), id(-1) {}
+        Neighbor(double dist, int id) : dist(dist), id(id) {}
+    };
+
+    struct CompLess {
+        constexpr bool operator()(const Neighbor& n1, const Neighbor& n2) const noexcept {
+            return n1.dist < n2.dist;
+        }
+    };
+
+    struct CompGreater {
+        constexpr bool operator()(const Neighbor& n1, const Neighbor& n2) const noexcept {
+            return n1.dist > n2.dist;
+        }
+    };
+
     template <typename T>
-    auto scan_knn_search(const Data<T>& query, int k, const Dataset<T> dataset,
+    auto scan_knn_search(const Data<T>& query, int k, const Dataset<T>& dataset,
                          string distance = "euclidean") {
         const auto df = select_distance(distance);
-        map<float, reference_wrapper<const Data<T>>> result_map;
+        map<double, int> result_map;
         for (const auto& data : dataset) {
-            const auto dist = euclidean_distance(query, data);
-            result_map.emplace(dist, data);
+            const auto dist = df(query, data);
+            result_map.emplace(dist, data.id);
             if (result_map.size() > k) result_map.erase(--result_map.cend());
         }
 
-        RefSeries<T> result;
+        vector<Neighbor> result;
         for (const auto& result_pair : result_map) {
-            result.emplace_back(result_pair.second);
+            result.emplace_back(result_pair.first, result_pair.second);
         }
 
         return result;
     }
 
-    constexpr auto double_max = numeric_limits<double>::max();
-    constexpr auto double_min = numeric_limits<double>::min();
 }
 
 #endif //ARAILIB_ARAILIB_HPP
