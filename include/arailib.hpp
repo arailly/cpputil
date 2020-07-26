@@ -255,6 +255,13 @@ namespace arailib {
         Neighbor(double dist, int id) : dist(dist), id(id) {}
     };
 
+    using Neighbors = vector<Neighbor>;
+
+    void sort_neighbors(Neighbors& neighbors) {
+        sort(neighbors.begin(), neighbors.end(),
+             [](const auto& n1, const auto& n2) { return n1.dist < n2.dist; });
+    }
+
     struct CompLess {
         constexpr bool operator()(const Neighbor& n1, const Neighbor& n2) const noexcept {
             return n1.dist < n2.dist;
