@@ -293,7 +293,7 @@ namespace arailib {
         return result;
     }
 
-    template <typename T>
+    template <typename T = double>
     auto calc_centroid(const Dataset<T>& dataset) {
         const auto n = dataset.size();
         const auto dim = dataset[0].size();
@@ -309,6 +309,13 @@ namespace arailib {
         }
 
         return centroid;
+    }
+
+    template <typename T = double>
+    auto calc_medoid(const Dataset<T>& dataset) {
+        const auto centroid = calc_centroid(dataset);
+        const auto search_result = scan_knn_search(centroid, 1, dataset);
+        return search_result[0].id;
     }
 }
 

@@ -150,9 +150,19 @@ TEST(search, scan_knn_search) {
 TEST(util, calc_centroid) {
     Dataset<> dataset;
     dataset.emplace_back(0, vector<double>{1, 2});
-    dataset.emplace_back(1, vector<double>{5, 10});
+    dataset.emplace_back(1, vector<double>{5, 11});
 
     const auto centroid = calc_centroid(dataset);
     ASSERT_EQ(centroid[0], 3);
-    ASSERT_EQ(centroid[1], 6);
+    ASSERT_EQ(centroid[1], 6.5);
+}
+
+TEST(util, calc_medoid) {
+    Dataset<> dataset;
+    dataset.emplace_back(0, vector<double>{1, 2});
+    dataset.emplace_back(1, vector<double>{5, 5});
+    dataset.emplace_back(2, vector<double>{8, 11});
+
+    const auto medoid = calc_medoid(dataset);
+    ASSERT_EQ(medoid, 1);
 }
