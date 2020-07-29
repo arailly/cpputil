@@ -278,11 +278,17 @@ namespace arailib {
     auto scan_knn_search(const Data<T>& query, int k, const Dataset<T>& dataset,
                          string distance = "euclidean") {
         const auto df = select_distance(distance);
+        auto threshold = double_max;
+
         multimap<double, int> result_map;
         for (const auto& data : dataset) {
             const auto dist = df(query, data);
-            result_map.emplace(dist, data.id);
-            if (result_map.size() > k) result_map.erase(--result_map.cend());
+
+            if (result_map.size() < k || dist < threshold) {
+                result_map.emplace(dist, data.id);
+                threshold = (--result_map.cend())->first;
+                if (result_map.size() > k) result_map.erase(--result_map.cend());
+            }
         }
 
         vector<Neighbor> result;
