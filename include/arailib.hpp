@@ -278,7 +278,7 @@ namespace arailib {
     auto scan_knn_search(const Data<T>& query, int k, const Dataset<T>& dataset,
                          string distance = "euclidean") {
         const auto df = select_distance(distance);
-        map<double, int> result_map;
+        multimap<double, int> result_map;
         for (const auto& data : dataset) {
             const auto dist = df(query, data);
             result_map.emplace(dist, data.id);
@@ -293,6 +293,23 @@ namespace arailib {
         return result;
     }
 
+    template <typename T>
+    auto calc_centroid(const Dataset<T>& dataset) {
+        const auto n = dataset.size();
+        const auto dim = dataset[0].size();
+
+        // get origin
+        Data<T> centroid(vector<T>(dim, 0));
+
+        // calc centroid
+        for (const auto& data : dataset) {
+            for (int i = 0; i < dim; ++i) {
+                centroid[i] += data[i] / n;
+            }
+        }
+
+        return centroid;
+    }
 }
 
 #endif //ARAILIB_ARAILIB_HPP

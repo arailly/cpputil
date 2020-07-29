@@ -146,3 +146,13 @@ TEST(search, scan_knn_search) {
     ASSERT_EQ(result[0].id, series[n - 1].id);
     ASSERT_EQ(result[1].id, series[n - 2].id);
 }
+
+TEST(util, calc_centroid) {
+    Dataset<> dataset;
+    dataset.emplace_back(0, vector<double>{1, 2});
+    dataset.emplace_back(1, vector<double>{5, 10});
+
+    const auto centroid = calc_centroid(dataset);
+    ASSERT_EQ(centroid[0], 3);
+    ASSERT_EQ(centroid[1], 6);
+}
