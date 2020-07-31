@@ -13,6 +13,7 @@
 #include <exception>
 #include <stdexcept>
 #include <omp.h>
+#include <x86intrin.h>
 #include <json.hpp>
 
 using namespace std;
@@ -322,6 +323,64 @@ namespace arailib {
         const auto centroid = calc_centroid(dataset);
         const auto search_result = scan_knn_search(centroid, 1, dataset);
         return search_result[0].id;
+    }
+
+    // function for AVX
+    static inline __m128 masked_read(int d, const float *x) {
+
+        assert (0 <= d && d < 4);
+        __attribute__((__aligned__(16))) float buf[4] = {0, 0, 0, 0};
+        switch (d) {
+            case 3:
+                buf[2] = x[2];
+            case 2:
+                buf[1] = x[1];
+            case 1:
+                buf[0] = x[0];
+        }
+        return _mm_load_ps (buf);
+    }
+
+    float l2_sqr_avx(const float *x, const float *y, size_t d) {
+
+        __m256 msum1 = _mm256_setzero_ps();
+
+        while (d >= 8) {
+            __m256 mx = _mm256_loadu_ps (x); x += 8;
+            __m256 my = _mm256_loadu_ps (y); y += 8;
+            const __m256 a_m_b1 = mx - my;
+            msum1 += a_m_b1 * a_m_b1;
+            d -= 8;
+        }
+
+        __m128 msum2 = _mm256_extractf128_ps(msum1, 1);
+        msum2 +=       _mm256_extractf128_ps(msum1, 0);
+
+        if (d >= 4) {
+            __m128 mx = _mm_loadu_ps (x); x += 4;
+            __m128 my = _mm_loadu_ps (y); y += 4;
+            const __m128 a_m_b1 = mx - my;
+            msum2 += a_m_b1 * a_m_b1;
+            d -= 4;
+        }
+
+        if (d > 0) {
+            __m128 mx = masked_read (d, x);
+            __m128 my = masked_read (d, y);
+            __m128 a_m_b1 = mx - my;
+            msum2 += a_m_b1 * a_m_b1;
+        }
+
+        msum2 = _mm_hadd_ps (msum2, msum2);
+        msum2 = _mm_hadd_ps (msum2, msum2);
+        return  _mm_cvtss_f32 (msum2);
+    }
+
+    auto euclidean_distance_avx(const Data<float>& data1,
+                                const Data<float>& data2) {
+        const auto dim = data1.size();
+        const auto dist = l2_sqr_avx(&data1.x[0], &data2.x[0], dim);
+        return dist;
     }
 }
 

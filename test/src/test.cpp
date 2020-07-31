@@ -166,3 +166,10 @@ TEST(util, calc_medoid) {
     const auto medoid = calc_medoid(dataset);
     ASSERT_EQ(medoid, 1);
 }
+
+TEST(util, distance_avx) {
+    const float a[] = {1, 2, 3, 4, 5, 6};
+    const float b[] = {2, 3, 4, 5, 6, 7};
+    const auto res = l2_sqr_avx(a, b, 6);
+    ASSERT_EQ(res, 6);
+}
