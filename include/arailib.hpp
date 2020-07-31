@@ -325,6 +325,7 @@ namespace arailib {
         return search_result[0].id;
     }
 
+#ifdef USE_AVX
     // function for AVX
     static inline __m128 masked_read(int d, const float *x) {
 
@@ -382,6 +383,7 @@ namespace arailib {
         const auto dist = l2_sqr_avx(&data1.x[0], &data2.x[0], dim);
         return dist;
     }
+#endif
 
     auto calc_recall(const Neighbors& actual, const Neighbors& expect) {
         double recall = 0;
@@ -398,6 +400,25 @@ namespace arailib {
 
         recall /= actual.size();
         return recall;
+    }
+
+    auto load_neighbors(const string& neighbor_path, int n) {
+        ifstream ifs(neighbor_path);
+        if (!ifs) throw runtime_error("Can't open file: " + neighbor_path);
+
+        vector<Neighbors> neighbors_list(n);
+        string line;
+        while(getline(ifs, line)) {
+            const auto row = split(line);
+
+            const int head_id = row[0];
+            const int tail_id = row[1];
+            const double dist = row[2];
+
+            neighbors_list[head_id].emplace_back(dist, tail_id);
+        }
+
+        return neighbors_list;
     }
 }
 

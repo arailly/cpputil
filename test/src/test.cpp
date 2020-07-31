@@ -167,16 +167,28 @@ TEST(util, calc_medoid) {
     ASSERT_EQ(medoid, 1);
 }
 
+#ifdef USE_AVX
 TEST(util, distance_avx) {
     const float a[] = {1, 2, 3, 4, 5, 6};
     const float b[] = {2, 3, 4, 5, 6, 7};
     const auto res = l2_sqr_avx(a, b, 6);
     ASSERT_EQ(res, 6);
 }
+#endif
 
 TEST(util, calc_recall) {
     Neighbors actual{{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}};
     Neighbors expect{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}};
     const auto res = calc_recall(actual, expect);
     ASSERT_EQ(res, 0.8);
+}
+
+TEST(util, load_neighbors) {
+    const string neighbor_path = "/tmp/tmp.NAR5JkEoH4/test/data/neighbors.csv";
+    int n = 3;
+    auto res = load_neighbors(neighbor_path, n);
+
+    ASSERT_EQ(res[0].size(), 3);
+    ASSERT_EQ(res[0][0].id, 1);
+    ASSERT_EQ(res[2][1].id, 3);
 }
