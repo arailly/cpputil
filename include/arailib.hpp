@@ -382,6 +382,23 @@ namespace arailib {
         const auto dist = l2_sqr_avx(&data1.x[0], &data2.x[0], dim);
         return dist;
     }
+
+    auto calc_recall(const Neighbors& actual, const Neighbors& expect) {
+        double recall = 0;
+
+        for (const auto& n1 : actual) {
+            int match = 0;
+            for (const auto& n2 : expect) {
+                if (n1.id != n2.id) continue;
+                match = 1;
+                break;
+            }
+            recall += match;
+        }
+
+        recall /= actual.size();
+        return recall;
+    }
 }
 
 #endif //ARAILIB_ARAILIB_HPP

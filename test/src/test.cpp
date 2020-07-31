@@ -173,3 +173,10 @@ TEST(util, distance_avx) {
     const auto res = l2_sqr_avx(a, b, 6);
     ASSERT_EQ(res, 6);
 }
+
+TEST(util, calc_recall) {
+    Neighbors actual{{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}};
+    Neighbors expect{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}};
+    const auto res = calc_recall(actual, expect);
+    ASSERT_EQ(res, 0.8);
+}
