@@ -8,10 +8,8 @@
 #include <functional>
 #include "gtest/gtest.h"
 #include <arailib.hpp>
-//#include <graph.hpp>
 
 using namespace arailib;
-//using namespace graph;
 
 TEST(Functional, fmap_test) {
     std::vector<int> v{1, 2, 3};
@@ -134,7 +132,7 @@ TEST(search, scan_knn_search) {
     Dataset<> series;
     int n = 10;
     for (int i = 0; i < n; ++i) {
-        series.push_back(Data<>(i, {(double)i}));
+        series.push_back(Data<>(i, {(float)i}));
     }
 
     const Data<> query({10});
@@ -149,8 +147,8 @@ TEST(search, scan_knn_search) {
 
 TEST(util, calc_centroid) {
     Dataset<> dataset;
-    dataset.emplace_back(0, vector<double>{1, 2});
-    dataset.emplace_back(1, vector<double>{5, 11});
+    dataset.emplace_back(0, vector<float>{1, 2});
+    dataset.emplace_back(1, vector<float>{5, 11});
 
     const auto centroid = calc_centroid(dataset);
     ASSERT_EQ(centroid[0], 3);
@@ -159,15 +157,15 @@ TEST(util, calc_centroid) {
 
 TEST(util, calc_medoid) {
     Dataset<> dataset;
-    dataset.emplace_back(0, vector<double>{1, 2});
-    dataset.emplace_back(1, vector<double>{5, 5});
-    dataset.emplace_back(2, vector<double>{8, 11});
+    dataset.emplace_back(0, vector<float>{1, 2});
+    dataset.emplace_back(1, vector<float>{5, 5});
+    dataset.emplace_back(2, vector<float>{8, 11});
 
     const auto medoid = calc_medoid(dataset);
     ASSERT_EQ(medoid, 1);
 }
 
-#ifdef USE_AVX
+#ifdef __AVX__
 TEST(util, distance_avx) {
     const float a[] = {1, 2, 3, 4, 5, 6};
     const float b[] = {2, 3, 4, 5, 6, 7};
@@ -179,7 +177,7 @@ TEST(util, distance_avx) {
 TEST(util, calc_recall) {
     Neighbors actual{{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}};
     Neighbors expect{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}};
-    const auto res = calc_recall(actual, expect);
+    const float res = calc_recall(actual, expect);
     ASSERT_EQ(res, 0.8);
 }
 
