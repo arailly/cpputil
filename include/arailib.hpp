@@ -201,7 +201,12 @@ namespace arailib {
 #endif
 
     auto select_distance(const string& distance = "euclidean") {
-        if (distance == "euclidean") return euclidean_distance<float>;
+        if (distance == "euclidean") {
+#ifdef __AVX__
+            return euclidean_distance_avx;
+#endif
+            return euclidean_distance<float>;
+        }
         if (distance == "manhattan") return manhattan_distance<float>;
         if (distance == "angular")   return angular_distance<float>;
         else throw runtime_error("invalid distance");
