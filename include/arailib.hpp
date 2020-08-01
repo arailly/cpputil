@@ -402,12 +402,15 @@ namespace arailib {
         return recall;
     }
 
-    auto load_neighbors(const string& neighbor_path, int n) {
+    auto load_neighbors(const string& neighbor_path, int n, bool skip_header = false) {
         ifstream ifs(neighbor_path);
         if (!ifs) throw runtime_error("Can't open file: " + neighbor_path);
 
         vector<Neighbors> neighbors_list(n);
         string line;
+
+        if (skip_header) getline(ifs, line);
+
         while(getline(ifs, line)) {
             const auto row = split(line);
 
