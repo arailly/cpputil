@@ -1,5 +1,5 @@
-#ifndef ARAILIB_ARAILIB_HPP
-#define ARAILIB_ARAILIB_HPP
+#ifndef CPPUTIL_CPPUTIL_HPP
+#define CPPUTIL_CPPUTIL_HPP
 
 #include <iostream>
 #include <vector>
@@ -19,7 +19,7 @@
 using namespace std;
 using namespace nlohmann;
 
-namespace arailib {
+namespace cpputil {
     template<typename UnaryOperation, typename Iterable>
     Iterable fmap(UnaryOperation op, const Iterable &v) {
         Iterable result;
@@ -452,4 +452,4 @@ namespace arailib {
     }
 }
 
-#endif //ARAILIB_ARAILIB_HPP
+#endif //CPPUTIL_CPPUTIL_HPP

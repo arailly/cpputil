@@ -7,14 +7,14 @@
 #include <queue>
 #include <functional>
 #include "gtest/gtest.h"
-#include <arailib.hpp>
+#include <cpputil.hpp>
 
-using namespace arailib;
+using namespace cpputil;
 
 TEST(Functional, fmap_test) {
     std::vector<int> v{1, 2, 3};
     const auto double_func = [](int x) { return x * 3; };
-    const auto actual = arailib::fmap(double_func, v);
+    const auto actual = cpputil::fmap(double_func, v);
 
     const std::vector<int> expect{3, 6, 9};
     ASSERT_EQ(actual, expect);
@@ -23,7 +23,7 @@ TEST(Functional, fmap_test) {
 TEST(Functional, filter_test) {
     std::vector<int> v{1, 2, 3, 4, 5};
     const auto pred = [](int x) { return (x > 3); };
-    const auto actual = arailib::filter(pred, v);
+    const auto actual = cpputil::filter(pred, v);
 
     const std::vector<int> expect{4, 5};
     ASSERT_EQ(actual, expect);
@@ -32,18 +32,18 @@ TEST(Functional, filter_test) {
 TEST(Utilities, l2_norm_test) {
     const auto p1 = Data<>({0, {1, 1}});
     const auto p2 = Data<>({1, {5, 4}});
-    const double actual = arailib::euclidean_distance(p1, p2);
+    const double actual = cpputil::euclidean_distance(p1, p2);
 
     const double expect = 5;
     ASSERT_EQ(actual, expect);
 }
 
 TEST(Object, method_test) {
-    const arailib::Data<> o1(0, {1, 2, 3});
+    const cpputil::Data<> o1(0, {1, 2, 3});
     ASSERT_EQ(o1.id, 0);
     ASSERT_EQ(o1[1], 2);
 
-    arailib::Data<> o2(0, {1, 2, 3});
+    cpputil::Data<> o2(0, {1, 2, 3});
     ASSERT_TRUE(o1 == o2);
 
     o2.id++;
@@ -52,11 +52,11 @@ TEST(Object, method_test) {
 
 TEST(Series, read_csv_test) {
     const std::string data_path = "../../../test/data/series.csv";
-    const arailib::Dataset<> series = arailib::read_csv(data_path);
+    const cpputil::Dataset<> series = cpputil::read_csv(data_path);
     ASSERT_EQ(series.size(), 3);
 
-    const arailib::Data<> actual = series[1];
-    arailib::Data<> expect(1, {2, 3, 4});
+    const cpputil::Data<> actual = series[1];
+    cpputil::Data<> expect(1, {2, 3, 4});
     ASSERT_EQ(actual, expect);
 }
 
@@ -80,17 +80,17 @@ TEST(Series, load_data_file) {
 
 TEST(Series, write_csv_test) {
     const std::string data_path = "../../../test/data/write_series.csv";
-    arailib::Dataset<> write_series;
-    write_series.push_back(arailib::Data<>(0, {1, 2, 3}));
-    write_series.push_back(arailib::Data<>(1, {2, 3, 4}));
-    write_series.push_back(arailib::Data<>(2, {3, 4, 5}));
-    arailib::write_csv(write_series, data_path);
+    cpputil::Dataset<> write_series;
+    write_series.push_back(cpputil::Data<>(0, {1, 2, 3}));
+    write_series.push_back(cpputil::Data<>(1, {2, 3, 4}));
+    write_series.push_back(cpputil::Data<>(2, {3, 4, 5}));
+    cpputil::write_csv(write_series, data_path);
 
-    const arailib::Dataset<> read_series = arailib::read_csv(data_path);
+    const cpputil::Dataset<> read_series = cpputil::read_csv(data_path);
     ASSERT_EQ(read_series.size(), 3);
 
-    const arailib::Data<> actual = read_series[1];
-    arailib::Data<> expect(1, {2, 3, 4});
+    const cpputil::Data<> actual = read_series[1];
+    cpputil::Data<> expect(1, {2, 3, 4});
     ASSERT_EQ(actual, expect);
 }
 
