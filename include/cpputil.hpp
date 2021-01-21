@@ -90,7 +90,7 @@ namespace cpputil {
     using SeriesList = vector<vector<Data<T>>>;
 
     template <typename T = float>
-    using DistanceFunction = function<float(Data<T>, Data<T>)>;
+    using DistanceFunction = function<T(Data<T>, Data<T>)>;
 
     template <typename T = float>
     auto euclidean_distance(const Data<T>& p1, const Data<T>& p2) {
@@ -429,9 +429,11 @@ namespace cpputil {
         return recall;
     }
 
-    auto load_neighbors(const string& neighbor_path, int n, bool skip_header = false) {
+    auto load_neighbors(const string& neighbor_path, int n,
+                        bool skip_header = false) {
         ifstream ifs(neighbor_path);
-        if (!ifs) throw runtime_error("Can't open file: " + neighbor_path);
+        if (!ifs)
+            throw runtime_error("Can't open file: " + neighbor_path);
 
         vector<Neighbors> neighbors_list(n);
         string line;
@@ -449,6 +451,58 @@ namespace cpputil {
         }
 
         return neighbors_list;
+    }
+
+    struct DataArray {
+        vector<float> x;
+        int n, dim;
+
+        DataArray(int n, int dim): n(n), dim(dim) {}
+
+        auto load(const vector<float>& v) { x = v; }
+
+        auto load_fvecs(const string& path) {
+            float* row = new float[dim];
+            ifstream ifs(path, ios::binary);
+            if (!ifs)
+                throw runtime_error("can't open file: " + path);
+
+            for (int i = 0; i < n; i++) {
+                int head = 0;
+                ifs.read((char*)&head, 4);
+                ifs.read((char*)row, head * sizeof(float));
+                for (int j = 0; j < dim; j++) {
+                    x[i * dim + j] = row[j];
+                }
+            }
+        }
+
+        auto load(const string& path) {
+            x.resize(n * dim);
+
+            // if path ends with ".fvecs"
+            if (path.rfind(".fvecs", path.size()) < path.size())
+                load_fvecs(path);
+            else
+                throw runtime_error("invalid file type");
+        }
+
+        decltype(auto) operator[](size_t i) { return x[i]; }
+
+        decltype(auto) find(size_t i) {
+            return next(x.begin(), i * dim);
+        }
+    };
+
+    auto euclidean_distance(vector<float>::const_iterator iter_1,
+                            vector<float>::const_iterator iter_2,
+                            int dim) {
+        float result = 0;
+        for (size_t i = 0; i < dim; i++, ++iter_1, ++iter_2) {
+            result += pow(*iter_1 - *iter_2, 2);
+        }
+        result = sqrt(result);
+        return result;
     }
 }
 

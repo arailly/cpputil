@@ -2,7 +2,9 @@
   <dictionary name="yusuke">
     <words>
       <w>cpputil</w>
+      <w>fvecs</w>
       <w>medoid</w>
+      <w>qnap</w>
     </words>
   </dictionary>
 </component>

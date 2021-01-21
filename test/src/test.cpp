@@ -190,3 +190,27 @@ TEST(util, load_neighbors) {
     ASSERT_EQ(res[0][0].id, 1);
     ASSERT_EQ(res[2][1].id, 3);
 }
+
+TEST(DataArray, load) {
+    auto dataset = DataArray(3, 128);
+    dataset.load("/mnt/qnap/data/sift/sift_base.fvecs");
+
+    ASSERT_EQ(dataset[0], 0);
+    ASSERT_EQ(dataset[1], 16);
+    ASSERT_EQ(dataset[2], 35);
+    ASSERT_EQ(*dataset.find(1), 14);
+}
+
+TEST(DataArray, euclidean_distance) {
+    int n = 2, dim = 2;
+    auto dataset = DataArray(n, dim);
+    dataset.load(vector<float>{1, 2, 4, 6});
+
+    const auto dist = euclidean_distance(
+            dataset.find(0),
+            dataset.find(1),
+            dim
+    );
+
+    ASSERT_EQ(dist, 5);
+}
