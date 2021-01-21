@@ -457,6 +457,8 @@ namespace cpputil {
         vector<float> x;
         int n, dim;
 
+        using Data = vector<float>::const_iterator;
+
         DataArray(int n, int dim): n(n), dim(dim) {}
 
         auto load(const vector<float>& v) { x = v; }
@@ -494,12 +496,11 @@ namespace cpputil {
         }
     };
 
-    auto euclidean_distance(vector<float>::const_iterator iter_1,
-                            vector<float>::const_iterator iter_2,
+    auto euclidean_distance(DataArray::Data data_1, DataArray::Data data_2,
                             int dim) {
         float result = 0;
-        for (size_t i = 0; i < dim; i++, ++iter_1, ++iter_2) {
-            result += pow(*iter_1 - *iter_2, 2);
+        for (size_t i = 0; i < dim; i++, ++data_1, ++data_2) {
+            result += pow(*data_1 - *data_2, 2);
         }
         result = sqrt(result);
         return result;
