@@ -459,7 +459,7 @@ namespace cpputil {
 
         using Data = vector<float>::const_iterator;
 
-        DataArray(int n, int dim): n(n), dim(dim) {}
+        DataArray(int n, int dim): n(n), dim(dim), x(n * dim) {}
 
         auto load(const vector<float>& v) { x = v; }
 
@@ -480,8 +480,6 @@ namespace cpputil {
         }
 
         auto load(const string& path) {
-            x.resize(n * dim);
-
             // if path ends with ".fvecs"
             if (path.rfind(".fvecs", path.size()) < path.size())
                 load_fvecs(path);
@@ -526,7 +524,10 @@ namespace cpputil {
         }
 
         auto load(const string& path) {
-
+            if (path.rfind(".ivecs", path.size()) < path.size())
+                load_ivecs(path);
+            else
+                throw runtime_error("invalid file type");
         }
     };
 }
