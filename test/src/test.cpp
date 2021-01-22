@@ -214,3 +214,17 @@ TEST(DataArray, euclidean_distance) {
 
     ASSERT_EQ(dist, 5);
 }
+
+TEST(GroundTruth, load) {
+    int n = 2, k = 100;
+    auto gt = GroundTruth(n, k);
+    gt.load_ivecs("/mnt/qnap/data/sift/sift_groundtruth.ivecs");
+
+    ASSERT_EQ(gt.x[0].size(), k);
+    ASSERT_EQ(gt.x[0][0], 932085);
+    ASSERT_EQ(gt.x[0][k - 1], 989762);
+
+    ASSERT_EQ(gt.x[1].size(), k);
+    ASSERT_EQ(gt.x[1][0], 413247);
+    ASSERT_EQ(gt.x[1][k - 1], 987074);
+}

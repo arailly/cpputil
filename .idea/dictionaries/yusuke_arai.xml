@@ -4,6 +4,8 @@
       <w>arailib</w>
       <w>fmap</w>
       <w>googletest</w>
+      <w>groundtruth</w>
+      <w>ivecs</w>
       <w>nndescent</w>
       <w>nrows</w>
       <w>vectorize</w>

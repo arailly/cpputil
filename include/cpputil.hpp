@@ -489,9 +489,9 @@ namespace cpputil {
                 throw runtime_error("invalid file type");
         }
 
-        decltype(auto) operator[](size_t i) { return x[i]; }
+        decltype(auto) operator[](int i) { return x[i]; }
 
-        decltype(auto) find(size_t i) {
+        decltype(auto) find(int i) {
             return next(x.begin(), i * dim);
         }
     };
@@ -505,6 +505,30 @@ namespace cpputil {
         result = sqrt(result);
         return result;
     }
+
+    struct GroundTruth {
+        int n, k;
+        vector<vector<int>> x;
+
+        GroundTruth(int n, int k) : n(n), k(k), x(n) {}
+
+        auto load_ivecs(const string& path) {
+            ifstream ifs(path, ios::binary);
+            unsigned int *row = new unsigned int[k];
+            for (int i = 0; i < n; i++) {
+                int head;
+                ifs.read((char*)&head, 4);
+                ifs.read((char*)row, head * 4);
+                for (int j = 0; j < k; ++j) {
+                    x[i].emplace_back(row[j]);
+                }
+            }
+        }
+
+        auto load(const string& path) {
+
+        }
+    };
 }
 
 #endif //CPPUTIL_CPPUTIL_HPP
