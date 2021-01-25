@@ -523,6 +523,8 @@ namespace cpputil {
             }
         }
 
+        decltype(auto) operator[](int i) { return x[i]; }
+
         auto load(const string& path) {
             if (path.rfind(".ivecs", path.size()) < path.size())
                 load_ivecs(path);
@@ -530,6 +532,26 @@ namespace cpputil {
                 throw runtime_error("invalid file type");
         }
     };
+
+    auto calc_recall(const Neighbors& actual, const vector<int>& expect,
+                     int k) {
+        float recall = 0;
+
+        for (int i = 0; i < k; ++i) {
+            const auto n1 = actual[i];
+            int match = 0;
+            for (int j = 0; j < k; ++j) {
+                const auto n2 = expect[j];
+                if (n1.id != n2) continue;
+                match = 1;
+                break;
+            }
+            recall += match;
+        }
+
+        recall /= actual.size();
+        return recall;
+    }
 }
 
 #endif //CPPUTIL_CPPUTIL_HPP
