@@ -476,6 +476,10 @@ namespace cpputil {
             for (int i = 0; i < n; i++) {
                 int head = 0;
                 ifs.read((char*)&head, 4);
+
+                if (head != dim)
+                    throw runtime_error("dimension not matched");
+
                 ifs.read((char*)row, head * sizeof(float));
                 for (int j = 0; j < dim; j++) {
                     x[i * dim + j] = row[j];
@@ -484,8 +488,7 @@ namespace cpputil {
         }
 
         auto load(const string& path) {
-            // if path ends with ".fvecs"
-            if (path.rfind(".fvecs", path.size()) < path.size())
+            if (ends_with(".fvecs", path))
                 load_fvecs(path);
             else
                 throw runtime_error("invalid file type");
@@ -520,6 +523,10 @@ namespace cpputil {
             for (int i = 0; i < n; i++) {
                 int head;
                 ifs.read((char*)&head, 4);
+
+                if (head != k)
+                    throw runtime_error("k not matched");
+
                 ifs.read((char*)row, head * 4);
                 for (int j = 0; j < k; ++j) {
                     x[i].emplace_back(row[j]);
@@ -530,7 +537,7 @@ namespace cpputil {
         decltype(auto) operator[](int i) { return x[i]; }
 
         auto load(const string& path) {
-            if (path.rfind(".ivecs", path.size()) < path.size())
+            if (ends_with(".ivecs", path))
                 load_ivecs(path);
             else
                 throw runtime_error("invalid file type");
