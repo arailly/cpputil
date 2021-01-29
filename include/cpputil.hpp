@@ -306,8 +306,12 @@ namespace cpputil {
         return chrono::duration_cast<chrono::microseconds>(end - start).count();
     }
 
+    auto ends_with(const string& pattern, const string& str) {
+        return str.rfind(pattern, str.size()) < str.size();
+    }
+
     bool is_csv(const string& path) {
-        return (path.rfind(".csv", path.size()) < path.size());
+        return ends_with(".csv", path);
     }
 
     constexpr auto double_max = numeric_limits<double>::max();

@@ -228,3 +228,8 @@ TEST(GroundTruth, load) {
     ASSERT_EQ(gt.x[1][0], 413247);
     ASSERT_EQ(gt.x[1][k - 1], 987074);
 }
+
+TEST(util, is_csv) {
+    ASSERT_TRUE(is_csv("abc.csv"));
+    ASSERT_FALSE(is_csv("abc.bin"));
+}
