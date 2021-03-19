@@ -487,6 +487,8 @@ namespace cpputil {
         }
     };
 
+    using Dist = function<float(DataArray::Data, DataArray::Data, int)>;
+
     auto l2_dist(DataArray::Data data_1, DataArray::Data data_2, int dim) {
 #ifdef __AVX__
         return sqrt(l2_sqr_avx(&(*data_1), &(*data_2), dim));
@@ -497,6 +499,34 @@ namespace cpputil {
             result += pow(*data_1 - *data_2, 2);
         }
         result = sqrt(result);
+        return result;
+    }
+
+    auto knn_scan(int k, DataArray::Data query, DataArray dataset,
+                  Dist dist = l2_dist) {
+        map<float, int> candidates;
+
+        for (int data_id = 0; data_id < dataset.n; ++data_id) {
+            const auto data = dataset.find(data_id);
+            const auto dist_val = dist(query, data, dataset.dim);
+
+            if (candidates.size() < k) {
+                candidates.emplace(dist_val, data_id);
+                continue;
+            }
+
+            const auto furthest = --candidates.cend();
+            if (dist_val < furthest->first) {
+                candidates.emplace(dist_val, data_id);
+                candidates.erase(furthest);
+            }
+        }
+
+        Neighbors result;
+        for (const auto candidate : candidates) {
+            result.emplace_back(candidate.first, candidate.second);
+        }
+
         return result;
     }
 

@@ -216,3 +216,30 @@ TEST(util, is_csv) {
     ASSERT_TRUE(is_csv("abc.csv"));
     ASSERT_FALSE(is_csv("abc.bin"));
 }
+
+TEST(knn_scan, l2) {
+    const int n = 1000000, n_query = 1;
+    const int dim = 128;
+    int k = 5, k_max = 100;
+
+    const string data_path = "/mnt/qnap/data/sift/sift_base.fvecs";
+    const string query_path = "/mnt/qnap/data/sift/sift_query.fvecs";
+    const string gt_path = "/mnt/qnap/data/sift/sift_groundtruth.ivecs";
+
+    auto dataset = DataArray(n, dim);
+    dataset.load(data_path);
+
+    auto queries = DataArray(n_query, dim);
+    queries.load(query_path);
+
+    auto gt = GroundTruth(n_query, k_max);
+    gt.load(gt_path);
+
+    int query_id = 0;
+    const auto query = queries.find(query_id);
+    const auto res = knn_scan(k, query, dataset);
+
+    ASSERT_EQ(res.size(), k);
+    ASSERT_EQ(res[0].id, gt.x[query_id][0]);
+    ASSERT_EQ(res[1].id, gt.x[query_id][1]);
+}
