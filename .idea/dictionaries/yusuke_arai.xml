@@ -1,11 +1,13 @@
 <component name="ProjectDictionaryState">
   <dictionary name="yusuke-arai">
     <words>
+      <w>arai</w>
       <w>arailib</w>
       <w>fmap</w>
       <w>googletest</w>
       <w>groundtruth</w>
       <w>ivecs</w>
+      <w>msum</w>
       <w>nndescent</w>
       <w>nrows</w>
       <w>vectorize</w>

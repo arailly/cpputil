@@ -200,18 +200,6 @@ namespace cpputil {
     }
 #endif
 
-    auto select_distance(const string& distance = "euclidean") {
-        if (distance == "euclidean") {
-#ifdef __AVX__
-            return euclidean_distance_avx;
-#endif
-            return euclidean_distance<float>;
-        }
-        if (distance == "manhattan") return manhattan_distance<float>;
-        if (distance == "angular")   return angular_distance<float>;
-        else throw runtime_error("invalid distance");
-    }
-
     template <typename T = float>
     vector<T> split(string &input, char delimiter = ',') {
         std::istringstream stream(input);
@@ -348,14 +336,12 @@ namespace cpputil {
     };
 
     template <typename T>
-    auto scan_knn_search(const Data<T>& query, int k, const Dataset<T>& dataset,
-                         string distance = "euclidean") {
-        const auto df = select_distance(distance);
+    auto scan_knn_search(const Data<T>& query, int k, const Dataset<T>& dataset) {
         auto threshold = float_max;
 
         multimap<float, int> result_map;
         for (const auto& data : dataset) {
-            const auto dist = df(query, data);
+            const auto dist = euclidean_distance(query, data);
 
             if (result_map.size() < k || dist < threshold) {
                 result_map.emplace(dist, data.id);
@@ -501,8 +487,11 @@ namespace cpputil {
         }
     };
 
-    auto euclidean_distance(DataArray::Data data_1, DataArray::Data data_2,
-                            int dim) {
+    auto l2_dist(DataArray::Data data_1, DataArray::Data data_2, int dim) {
+#ifdef __AVX__
+        return sqrt(l2_sqr_avx(&(*data_1), &(*data_2), dim));
+#endif
+
         float result = 0;
         for (size_t i = 0; i < dim; i++, ++data_1, ++data_2) {
             result += pow(*data_1 - *data_2, 2);

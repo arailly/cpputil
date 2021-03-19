@@ -128,23 +128,6 @@ TEST(utility, clip) {
     ASSERT_EQ(clip(val_3, min_val, max_val), max_val);
 }
 
-TEST(search, scan_knn_search) {
-    Dataset<> series;
-    int n = 10;
-    for (int i = 0; i < n; ++i) {
-        series.push_back(Data<>(i, {(float)i}));
-    }
-
-    const Data<> query({10});
-
-    int k = 3;
-    const auto result = scan_knn_search(query, k, series);
-
-    ASSERT_EQ(result.size(), k);
-    ASSERT_EQ(result[0].id, series[n - 1].id);
-    ASSERT_EQ(result[1].id, series[n - 2].id);
-}
-
 TEST(util, calc_centroid) {
     Dataset<> dataset;
     dataset.emplace_back(0, vector<float>{1, 2});
@@ -201,12 +184,12 @@ TEST(DataArray, load) {
     ASSERT_EQ(*dataset.find(1), 14);
 }
 
-TEST(DataArray, euclidean_distance) {
+TEST(DataArray, l2_dist) {
     int n = 2, dim = 2;
     auto dataset = DataArray(n, dim);
     dataset.load(vector<float>{1, 2, 4, 6});
 
-    const auto dist = euclidean_distance(
+    const auto dist = l2_dist(
             dataset.find(0),
             dataset.find(1),
             dim
