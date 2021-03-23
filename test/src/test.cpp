@@ -243,3 +243,10 @@ TEST(knn_scan, l2) {
     ASSERT_EQ(res[0].id, gt.x[query_id][0]);
     ASSERT_EQ(res[1].id, gt.x[query_id][1]);
 }
+
+TEST(dist, inner_product) {
+    int n = 2, dim = 2;
+    auto db = DataArray(n, dim);
+    db.load(vector<float>{1, 2, 4, 6});
+    ASSERT_EQ(inner_product(db.find(0), db.find(1), dim), 16);
+}
