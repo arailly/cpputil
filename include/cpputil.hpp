@@ -523,12 +523,18 @@ namespace cpputil {
     }
 
     auto knn_scan(int k, DataArray::Data query, DataArray dataset,
-                  Dist dist = l2_dist) {
-        map<float, int> candidates;
+                  string dist_kind = "l2") {
+        auto candidates = map<float, int>();
 
         for (int data_id = 0; data_id < dataset.n; ++data_id) {
             const auto data = dataset.find(data_id);
-            const auto dist_val = dist(query, data, dataset.dim);
+
+            float dist_val;
+            if (dist_kind == "l2") {
+                dist_val = l2_dist(query, data, dataset.dim);
+            } else if (dist_kind == "ip") {
+                dist_val = -inner_product(query, data, dataset.dim);
+            }
 
             if (candidates.size() < k) {
                 candidates.emplace(dist_val, data_id);
@@ -544,7 +550,12 @@ namespace cpputil {
 
         Neighbors result;
         for (const auto candidate : candidates) {
-            result.emplace_back(candidate.first, candidate.second);
+            float dist_val = candidate.first;
+            if (dist_kind == "ip")
+                dist_val = -dist_val;
+
+            auto data_id = candidate.second;
+            result.emplace_back(dist_val, data_id);
         }
 
         return result;

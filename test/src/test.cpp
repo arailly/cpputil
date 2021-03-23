@@ -250,3 +250,16 @@ TEST(dist, inner_product) {
     db.load(vector<float>{1, 2, 4, 6});
     ASSERT_EQ(inner_product(db.find(0), db.find(1), dim), 16);
 }
+
+TEST(knn_scan, ip) {
+    int n = 4, dim = 2;
+    auto db = DataArray(n, dim);
+    db.load(vector<float>{1, 2, 4, 6, 9, 9, 4, 4});
+
+    auto queries = DataArray(1, dim);
+    queries.load(vector<float>{1, 1.1});
+    auto query = queries.find(0);
+
+    const auto res = knn_scan(1, query, db, "ip");
+    ASSERT_EQ(res[0].id, 2);
+}
