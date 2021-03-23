@@ -263,3 +263,21 @@ TEST(knn_scan, ip) {
     const auto res = knn_scan(1, query, db, "ip");
     ASSERT_EQ(res[0].id, 2);
 }
+
+TEST(DataArray, load_csv) {
+    const int n = 2;
+    const int dim = 128;
+    int k = 5;
+
+    const string data_path = "/mnt/qnap/data/sift/sift_base.csv";
+
+    auto dataset = DataArray(n, dim);
+    dataset.load(data_path);
+
+    ASSERT_EQ(dataset[0], 0);
+    ASSERT_EQ(dataset[1], 16);
+    ASSERT_EQ(dataset[dim - 1], 1);
+    ASSERT_EQ(dataset[dim], 14);
+    ASSERT_EQ(dataset[dim + 1], 35);
+    ASSERT_EQ(dataset[2 * dim - 1], 33);
+}

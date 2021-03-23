@@ -483,9 +483,24 @@ namespace cpputil {
             }
         }
 
+        auto load_csv(const string &path) {
+            ifstream ifs(path);
+            if (!ifs) throw runtime_error("Can't open file!");
+
+            string line;
+            for (int i = 0; i < n && getline(ifs, line); ++i) {
+                auto v = split(line);
+                for (int j = 0; j < dim; j++) {
+                    x[i * dim + j] = v[j];
+                }
+            }
+        }
+
         auto load(const string &path) {
             if (ends_with(".fvecs", path))
                 load_fvecs(path);
+            else if (ends_with(".csv", path))
+                load_csv(path);
             else
                 throw runtime_error("invalid file type");
         }
